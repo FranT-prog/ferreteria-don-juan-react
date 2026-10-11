@@ -1,13 +1,80 @@
 // ==========================================
-// FUENTE DE DATOS E INTEGRACIÓN DE PERSISTENCIA
+// BASE DE DATOS - FERRETERÍA DON JUAN
 // ==========================================
 
-// Datos semilla por defecto (Base de datos inicial)
 const PRODUCTOS_INICIALES = [
-  { id: 'PROD-001', nombre: 'Martillo Cincelador 16oz', precio: 12990, stock: 15, categoria: 'Herramientas Manuales', descripcion: 'Martillo de acero forjado con mango ergonómico antideslizante.', imagen: 'https://via.placeholder.com/300x200?text=Martillo' },
-  { id: 'PROD-002', nombre: 'Juego de Destornilladores (6 pzas)', precio: 12000, stock: 8, categoria: 'Herramientas Manuales', descripcion: 'Set de destornilladores de precisión cromo-vanadio.', imagen: 'https://via.placeholder.com/300x200?text=Destornilladores' },
-  { id: 'PROD-003', nombre: 'Taladro Inalámbrico 20V', precio: 85990, stock: 5, categoria: 'Herramientas Eléctricas', descripcion: 'Taladro percutor con 2 baterías de litio y maletín de transporte.', imagen: 'https://via.placeholder.com/300x200?text=Taladro' },
-  { id: 'PROD-004', nombre: 'Sierra Manual para Madera 18"', precio: 14500, stock: 20, categoria: 'Herramientas Manuales', descripcion: 'Serrucho de hoja templada con dientes de triple afilado.', imagen: 'https://via.placeholder.com/300x200?text=Sierra' }
+  { 
+    id: 'LLA-001', 
+    nombre: 'Llave Ajustable', 
+    precio: 8590, 
+    stock: 19, 
+    categoria: 'Herramientas Manuales', 
+    descripcion: 'Llave ajustable de acero.', 
+    imagen: '/llave_ajustable.jpg'
+  },
+  { 
+    id: 'CIN-001', 
+    nombre: 'Cinta Métrica', 
+    precio: 4990, 
+    stock: 15, 
+    categoria: 'Herramientas Manuales', 
+    descripcion: 'Cinta métrica de 5 metros.', 
+    imagen: '/cinta_metrica.jpg'
+  },
+  { 
+    id: 'NIV-001', 
+    nombre: 'Nivel de Burbuja', 
+    precio: 6990, 
+    stock: 12, 
+    categoria: 'Herramientas Manuales', 
+    descripcion: 'Nivel de burbuja de aluminio.', 
+    imagen: '/nivel_de_burbuja.jpg' 
+  },
+  { 
+    id: 'DES-001', 
+    nombre: 'Set de Destornilladores', 
+    precio: 12990, 
+    stock: 8, 
+    categoria: 'Herramientas Manuales', 
+    descripcion: 'Set de 6 destornilladores.', 
+    imagen: '/caja_destornillador.jpg' 
+  },
+  { 
+    id: 'TIJ-001', 
+    nombre: 'Tijeras de Corte', 
+    precio: 8990, 
+    stock: 6, 
+    categoria: 'Herramientas Manuales', 
+    descripcion: 'Tijeras para hojalata.', 
+    imagen: '/tijeras_de_corte.jpg' 
+  },
+  { 
+    id: 'MAT-001', 
+    nombre: 'Cemento 25kg', 
+    precio: 7990, 
+    stock: 49, 
+    categoria: 'Materiales de Construcción', 
+    descripcion: 'Saco de cemento de 25 kg.', 
+    imagen: '/saco_de_cemento_de.jpg' 
+  },
+  { 
+    id: 'MAT-002', 
+    nombre: 'Arena Fina (saco)', 
+    precio: 4990, 
+    stock: 30, 
+    categoria: 'Materiales de Construcción', 
+    descripcion: 'Saco de arena fina.', 
+    imagen: '/saco_de_arena_fina.jpg' 
+  },
+  { 
+    id: 'MAT-003', 
+    nombre: 'Ladrillo de arcilla', 
+    precio: 350, 
+    stock: 500, 
+    categoria: 'Materiales de Construcción', 
+    descripcion: 'Ladrillo de arcilla.', 
+    imagen: '/ladrillo_de_arcilla.jpg' 
+  }
 ];
 
 const USUARIOS_INICIALES = [
@@ -16,19 +83,7 @@ const USUARIOS_INICIALES = [
   { id: 'USR-003', nombre: 'Juan Pérez', email: 'cliente@gmail.com', password: '123', rol: 'Cliente', estado: 'Activo' }
 ];
 
-const PEDIDOS_INICIALES = [
-  {
-    id: 'ORD-001',
-    fecha: '2026-10-10',
-    cliente: 'Juan Pérez',
-    rut: '12.345.678-9',
-    email: 'cliente@gmail.com',
-    direccion: 'Av. Concha y Toro 1234, Puente Alto',
-    total: 24990,
-    estado: 'Pendiente',
-    items: [{ id: 'PROD-001', nombre: 'Martillo Cincelador 16oz', precio: 12990, cantidad: 1 }]
-  }
-];
+const PEDIDOS_INICIALES = [];
 
 // Inicialización de LocalStorage
 const inicializarBD = () => {
