@@ -5,9 +5,9 @@ const Footer = () => {
   return (
     <footer className="bg-dark text-white mt-5 py-4">
       <div className="container">
-        <div className="row">
+        <div className="row g-3">
           {/* Columna 1: Info de la tienda */}
-          <div className="col-12 col-md-4 mb-3">
+          <div className="col-12 col-md-6 col-lg-4 mb-3 mb-md-0">
             <h5 className="text-warning fw-bold">
               <i className="bi bi-tools me-2"></i>Ferretería Don Juan
             </h5>
@@ -18,9 +18,9 @@ const Footer = () => {
           </div>
 
           {/* Columna 2: Enlaces rápidos */}
-          <div className="col-12 col-md-4 mb-3">
-            <h5 className="text-warning fw-bold">Enlaces Rápidos</h5>
-            <ul className="list-unstyled small">
+          <div className="col-6 col-md-6 col-lg-4">
+            <h5 className="text-warning fw-bold fs-6">Enlaces Rápidos</h5>
+            <ul className="list-unstyled small mb-0">
               <li className="mb-2">
                 <Link to="/catalogo" className="text-white text-decoration-none">
                   <i className="bi bi-chevron-right me-1"></i>Catálogo
@@ -45,9 +45,9 @@ const Footer = () => {
           </div>
 
           {/* Columna 3: Contacto y redes */}
-          <div className="col-12 col-md-4 mb-3">
-            <h5 className="text-warning fw-bold">Contacto</h5>
-            <ul className="list-unstyled small text-secondary">
+          <div className="col-6 col-md-6 col-lg-4">
+            <h5 className="text-warning fw-bold fs-6">Contacto</h5>
+            <ul className="list-unstyled small text-secondary mb-0">
               <li className="mb-2">
                 <i className="bi bi-geo-alt-fill me-2"></i>Av. Francisco de Aguirre 450, La Serena
               </li>
@@ -78,7 +78,7 @@ const Footer = () => {
         {/* Copyright */}
         <div className="text-center small text-secondary">
           <p className="mb-0">
-            &copy; 2024 Ferretería Los Maestros. Todos los derechos reservados. | Duoc UC
+            &copy; 2024 Ferretería Don Juan. Todos los derechos reservados. | Duoc UC
           </p>
         </div>
       </div>
