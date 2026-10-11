@@ -4,6 +4,8 @@ import { inicializarBaseDeDatos } from './data/database';
 
 // Importación de componentes
 import Navbar from './components/Navbar';
+import Footer from './components/Footer';
+import Home from './pages/Home';
 import Catalogo from './pages/Catalogo';
 import Carrito from './pages/Carrito';
 import PagoExitoso from './pages/PagoExitoso';
@@ -38,7 +40,8 @@ function App() {
       <div className="container my-4">
         <Routes>
           {/* Rutas Públicas */}
-          <Route path="/" element={<Catalogo onActualizarCarrito={actualizarContador} />} />
+          <Route path="/" element={<Home />} />
+          <Route path="/catalogo" element={<Catalogo onActualizarCarrito={actualizarContador} />} />
           <Route path="/carrito" element={<Carrito onActualizarCarrito={actualizarContador} />} />
           <Route path="/pago-exitoso" element={<PagoExitoso />} />
           <Route path="/detalle/:id" element={<DetalleProducto onActualizarCarrito={actualizarContador} />} />
@@ -56,6 +59,7 @@ function App() {
           <Route path="/vendedor/pedido/:id" element={<DetallePedido />} />
         </Routes>
       </div>
+      <Footer />
     </BrowserRouter>
   );
 }

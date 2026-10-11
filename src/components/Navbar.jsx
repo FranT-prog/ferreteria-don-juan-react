@@ -6,7 +6,7 @@ const Navbar = ({ contadorCarrito }) => {
     <nav className="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
       <div className="container">
         <Link className="navbar-brand fw-bold text-warning" to="/">
-          <i className="bi bi-tools me-2"></i>Ferretería Don Juan
+          <i className="bi bi-tools me-2"></i>Ferretería Los Maestros
         </Link>
         <button 
           className="navbar-toggler" 
@@ -19,7 +19,7 @@ const Navbar = ({ contadorCarrito }) => {
         <div className="collapse navbar-collapse" id="navbarNav">
           <ul className="navbar-nav me-auto">
             <li className="nav-item">
-              <NavLink className={({ isActive }) => `nav-link ${isActive ? 'active fw-bold' : ''}`} to="/">
+              <NavLink className={({ isActive }) => `nav-link ${isActive ? 'active fw-bold' : ''}`} to="/catalogo">
                 Catálogo
               </NavLink>
             </li>
