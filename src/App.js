@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
 import Navbar from './components/Navbar';
+import Footer from './components/Footer';
+import Home from './pages/Home';
+import Contacto from './pages/Contacto';
 import Catalogo from './pages/Catalogo';
 import Carrito from './pages/Carrito';
 import PagoExitoso from './pages/PagoExitoso';
@@ -50,7 +53,9 @@ function App() {
       <div className="container my-4">
         <Routes>
           {/* Rutas Públicas */}
-          <Route path="/" element={<Catalogo onActualizarCarrito={actualizarContador} />} />
+          <Route path="/" element={<Home />} />
+          <Route path="/catalogo" element={<Catalogo onActualizarCarrito={actualizarContador} />} />
+          <Route path="/contacto" element={<Contacto />} />
           <Route path="/nosotros" element={<Nosotros />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/carrito" element={<Carrito onActualizarCarrito={actualizarContador} />} />
@@ -86,6 +91,7 @@ function App() {
           } />
         </Routes>
       </div>
+      <Footer /> 
     </BrowserRouter>
   );
 }
