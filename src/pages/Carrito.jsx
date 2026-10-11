@@ -11,9 +11,7 @@ const Carrito = ({ onActualizarCarrito }) => {
     direccion: ''
   });
 
-  // Estado para los mensajes de error en el formulario
   const [errores, setErrores] = useState({});
-
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -34,7 +32,6 @@ const Carrito = ({ onActualizarCarrito }) => {
     const { name, value } = e.target;
     setDatosCliente({ ...datosCliente, [name]: value });
 
-    // Limpiar el error del campo que se está modificando
     if (errores[name]) {
       setErrores({ ...errores, [name]: '' });
     }
@@ -43,12 +40,10 @@ const Carrito = ({ onActualizarCarrito }) => {
   const validarFormulario = () => {
     const nuevosErrores = {};
 
-    // 1. Validar Nombre
     if (!datosCliente.nombre.trim()) {
       nuevosErrores.nombre = 'El nombre completo es obligatorio.';
     }
 
-    // 2. Validar RUT (Máximo 9 caracteres contando número y dígito verificador, ignorando puntos/guión)
     const rutLimpio = datosCliente.rut.replace(/[^0-9kK]/g, '');
     if (!rutLimpio) {
       nuevosErrores.rut = 'El RUT es obligatorio.';
@@ -56,7 +51,6 @@ const Carrito = ({ onActualizarCarrito }) => {
       nuevosErrores.rut = 'El RUT debe tener entre 8 y 9 caracteres (Ej: 123456789 o 18765432K).';
     }
 
-    // 3. Validar Correo (@gmail.com o @losmaestros.cl)
     const regexEmailDominio = /^[a-zA-Z0-9._%+-]+@(gmail\.com|losmaestros\.cl)$/i;
     if (!datosCliente.email.trim()) {
       nuevosErrores.email = 'El correo electrónico es obligatorio.';
@@ -64,7 +58,6 @@ const Carrito = ({ onActualizarCarrito }) => {
       nuevosErrores.email = 'El correo debe terminar en @gmail.com o @losmaestros.cl.';
     }
 
-    // 4. Validar Dirección
     if (!datosCliente.direccion.trim()) {
       nuevosErrores.direccion = 'La dirección de despacho es obligatoria.';
     }
@@ -84,47 +77,57 @@ const Carrito = ({ onActualizarCarrito }) => {
     return carrito.reduce((total, item) => total + (item.precio * (item.cantidad || 1)), 0);
   };
 
-  const procesarPago = (e) => {
-    e.preventDefault();
+  // ESTA ES LA FUNCIÓN UNIFICADA
+  const procesarCompraFinal = (e) => {
+    e.preventDefault(); // Detenemos la recarga
 
     if (carrito.length === 0) return;
 
-    // Ejecutar validaciones antes de procesar la compra
+    // 1. Validamos el formulario
     if (!validarFormulario()) {
-      return;
+      return; // Si hay errores, nos detenemos aquí y mostramos las alertas rojas
     }
 
-    const nuevoPedido = {
-      cliente: datosCliente.nombre.trim(),
-      rut: datosCliente.rut.trim(),
-      email: datosCliente.email.trim(),
-      direccion: datosCliente.direccion.trim(),
-      total: calcularTotal(),
-      estado: 'Pendiente',
-      items: carrito.map(item => ({
-        id: item.id,
-        nombre: item.nombre,
-        precio: item.precio,
-        cantidad: item.cantidad || 1
-      }))
-    };
+    // 2. Si pasa las validaciones, mostramos la ventanita de simulación
+    const pagoAprobado = window.confirm("Simulación de pago:\n[Aceptar] = Pago Exitoso\n[Cancelar] = Pago Rechazado");
 
-    // DESCONTAR STOCK DE CADA PRODUCTO COMPRADO
-    let productos = JSON.parse(localStorage.getItem('react_productos')) || [];
-    carrito.forEach(item => {
-      productos = productos.map(p =>
-        p.id === item.id
-          ? { ...p, stock: Math.max(0, p.stock - (item.cantidad || 1)) }
-          : p
-      );
-    });
-    localStorage.setItem('react_productos', JSON.stringify(productos));
+    if (pagoAprobado) {
+      // 3. LÓGICA DE ÉXITO: Creamos el pedido y descontamos stock
+      const nuevoPedido = {
+        cliente: datosCliente.nombre.trim(),
+        rut: datosCliente.rut.trim(),
+        email: datosCliente.email.trim(),
+        direccion: datosCliente.direccion.trim(),
+        total: calcularTotal(),
+        estado: 'Pendiente',
+        items: carrito.map(item => ({
+          id: item.id,
+          nombre: item.nombre,
+          precio: item.precio,
+          cantidad: item.cantidad || 1
+        }))
+      };
 
-    createPedido(nuevoPedido);
-    localStorage.removeItem('react_carrito');
-    if (onActualizarCarrito) onActualizarCarrito();
+      let productos = JSON.parse(localStorage.getItem('react_productos')) || [];
+      carrito.forEach(item => {
+        productos = productos.map(p =>
+          p.id === item.id
+            ? { ...p, stock: Math.max(0, p.stock - (item.cantidad || 1)) }
+            : p
+        );
+      });
+      
+      localStorage.setItem('react_productos', JSON.stringify(productos));
+      createPedido(nuevoPedido);
+      localStorage.removeItem('react_carrito');
+      if (onActualizarCarrito) onActualizarCarrito();
 
-    navigate('/pago-exitoso');
+      // Navegamos al éxito
+      navigate('/pago-exitoso'); 
+    } else {
+      // 4. LÓGICA DE RECHAZO: Navegamos a la vista de error (sin crear pedido ni vaciar carrito)
+      navigate('/pago-rechazado');
+    }
   };
 
   return (
@@ -143,7 +146,6 @@ const Carrito = ({ onActualizarCarrito }) => {
         </div>
       ) : (
         <div className="row g-4">
-          {/* Lista de Productos */}
           <div className="col-lg-7">
             <ul className="list-group mb-3 shadow-sm border-0">
               {carrito.map(item => (
@@ -179,7 +181,6 @@ const Carrito = ({ onActualizarCarrito }) => {
             </ul>
           </div>
 
-          {/* Formulario con Validaciones */}
           <div className="col-lg-5">
             <div className="card shadow-sm border-0 bg-light">
               <div className="card-body p-4">
@@ -187,8 +188,9 @@ const Carrito = ({ onActualizarCarrito }) => {
                   <i className="bi bi-person-lines-fill me-2"></i>Datos de Despacho
                 </h5>
                 
-                <form onSubmit={procesarPago} noValidate>
-                  {/* Campo Nombre */}
+                {/* AQUI CONECTAMOS EL FORMULARIO CON LA FUNCIÓN UNIFICADA */}
+                <form onSubmit={procesarCompraFinal} noValidate>
+                  
                   <div className="mb-3">
                     <label className="form-label fw-bold small text-muted">Nombre Completo</label>
                     <input 
@@ -202,7 +204,6 @@ const Carrito = ({ onActualizarCarrito }) => {
                     {errores.nombre && <div className="invalid-feedback">{errores.nombre}</div>}
                   </div>
 
-                  {/* Campo RUT y Email */}
                   <div className="row g-2 mb-3">
                     <div className="col-md-6">
                       <label className="form-label fw-bold small text-muted">RUT</label>
@@ -231,7 +232,6 @@ const Carrito = ({ onActualizarCarrito }) => {
                     </div>
                   </div>
 
-                  {/* Campo Dirección */}
                   <div className="mb-4">
                     <label className="form-label fw-bold small text-muted">Dirección de Despacho</label>
                     <input 
@@ -252,8 +252,12 @@ const Carrito = ({ onActualizarCarrito }) => {
                     <strong className="fs-3 text-danger">${calcularTotal().toLocaleString()}</strong>
                   </div>
 
-                  <button type="submit" className="btn btn-success btn-lg w-100 fw-bold shadow-sm">
-                    <i className="bi bi-credit-card-fill me-2"></i> Pagar y Confirmar Orden
+                  {/* EL BOTÓN AHORA ES TIPO SUBMIT Y NO TIENE ONCLICK */}
+                  <button 
+                    type="submit"
+                    className="btn btn-success w-100" 
+                  >
+                    Finalizar Compra
                   </button>
                 </form>
               </div>
