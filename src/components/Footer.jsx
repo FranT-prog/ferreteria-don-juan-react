@@ -1,0 +1,83 @@
+import React from 'react';
+import { Link } from 'react-router-dom';
+
+const Footer = () => {
+  return (
+    <footer className="bg-dark text-white mt-5 py-4">
+      <div className="container">
+        <div className="row">
+          {/* Columna 1: Info de la tienda */}
+          <div className="col-12 col-md-4 mb-3">
+            <h5 className="text-warning fw-bold">
+              <i className="bi bi-tools me-2"></i>Ferretería Los Maestros
+            </h5>
+            <p className="text-secondary small">
+              Tu ferretería de confianza. Encuentra herramientas manuales,
+              eléctricas y materiales de construcción de la mejor calidad.
+            </p>
+          </div>
+
+          {/* Columna 2: Enlaces rápidos */}
+          <div className="col-12 col-md-4 mb-3">
+            <h5 className="text-warning fw-bold">Enlaces Rápidos</h5>
+            <ul className="list-unstyled small">
+              <li className="mb-2">
+                <Link to="/catalogo" className="text-white text-decoration-none">
+                  <i className="bi bi-chevron-right me-1"></i>Catálogo
+                </Link>
+              </li>
+              <li className="mb-2">
+                <Link to="/nosotros" className="text-white text-decoration-none">
+                  <i className="bi bi-chevron-right me-1"></i>Nosotros
+                </Link>
+              </li>
+              <li className="mb-2">
+                <Link to="/contacto" className="text-white text-decoration-none">
+                  <i className="bi bi-chevron-right me-1"></i>Contacto
+                </Link>
+              </li>
+              <li className="mb-2">
+                <Link to="/blog" className="text-white text-decoration-none">
+                  <i className="bi bi-chevron-right me-1"></i>Blog
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Columna 3: Contacto y redes */}
+          <div className="col-12 col-md-4 mb-3">
+            <h5 className="text-warning fw-bold">Contacto</h5>
+            <ul className="list-unstyled small text-secondary">
+              <li className="mb-1">
+                <i className="bi bi-geo-alt-fill me-2"></i>Santiago, Chile
+              </li>
+              <li className="mb-1">
+                <i className="bi bi-telephone-fill me-2"></i>+56 9 1234 5678
+              </li>
+              <li className="mb-1">
+                <i className="bi bi-envelope-fill me-2"></i>contacto@losmaestros.cl
+              </li>
+            </ul>
+            <div className="d-flex gap-3 fs-5 mt-2">
+              <a href="#facebook" className="text-white"><i className="bi bi-facebook"></i></a>
+              <a href="#instagram" className="text-white"><i className="bi bi-instagram"></i></a>
+              <a href="#twitter" className="text-white"><i className="bi bi-twitter"></i></a>
+              <a href="#whatsapp" className="text-white"><i className="bi bi-whatsapp"></i></a>
+            </div>
+          </div>
+        </div>
+
+        <hr className="border-secondary" />
+
+        {/* Copyright */}
+        <div className="text-center small text-secondary">
+          <p className="mb-0">
+            &copy; 2024 Ferretería Los Maestros. Todos los derechos reservados. | Duoc UC
+          </p>
+        </div>
+      </div>
+    </footer>
+  );
+};
+
+export default Footer;
