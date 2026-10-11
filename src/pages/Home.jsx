@@ -57,7 +57,8 @@ const Home = () => {
         </h2>
         <div className="row g-4 justify-content-center">
           <div className="col-12 col-md-5">
-            <Link to="/categorias" className="text-decoration-none">
+            {/* 👇 CAMBIO: ahora apunta a /categoria/herramientas-manuales */}
+            <Link to="/categoria/herramientas-manuales" className="text-decoration-none">
               <div className="card border-0 shadow-lg h-100 text-center category-card" style={{ transition: 'transform 0.3s' }}>
                 <div className="card-body py-5" style={{ background: 'linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%)', color: 'white', borderRadius: '0.5rem' }}>
                   <i className="bi bi-hammer" style={{ fontSize: '4rem' }}></i>
@@ -69,7 +70,8 @@ const Home = () => {
           </div>
 
           <div className="col-12 col-md-5">
-            <Link to="/categorias" className="text-decoration-none">
+            {/* 👇 CAMBIO: ahora apunta a /categoria/materiales-de-construccion */}
+            <Link to="/categoria/materiales-de-construccion" className="text-decoration-none">
               <div className="card border-0 shadow-lg h-100 text-center category-card" style={{ transition: 'transform 0.3s' }}>
                 <div className="card-body py-5" style={{ background: 'linear-gradient(135deg, #ffc107 0%, #fd7e14 100%)', color: 'white', borderRadius: '0.5rem' }}>
                   <i className="bi bi-bricks" style={{ fontSize: '4rem' }}></i>
@@ -203,7 +205,7 @@ const Home = () => {
                 <ul className="list-unstyled mb-0">
                   <li className="d-flex justify-content-between py-2 border-bottom border-secondary">
                     <span><i className="bi bi-calendar-week me-2"></i>Lunes a Viernes</span>
-                    <strong>8:00 - 18:30</strong>
+                    <strong>8:30 - 18:30</strong>
                   </li>
                   <li className="d-flex justify-content-between py-2 border-bottom border-secondary">
                     <span><i className="bi bi-calendar-week me-2"></i>Sábado</span>
