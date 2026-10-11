@@ -1,14 +1,77 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { createPedido } from '../data/database';
 
 const Carrito = ({ onActualizarCarrito }) => {
   const [carrito, setCarrito] = useState([]);
+  const [datosCliente, setDatosCliente] = useState({
+    nombre: '',
+    rut: '',
+    email: '',
+    direccion: ''
+  });
+
+  // Estado para los mensajes de error en el formulario
+  const [errores, setErrores] = useState({});
+
   const navigate = useNavigate();
 
   useEffect(() => {
     const carritoGuardado = JSON.parse(localStorage.getItem('react_carrito')) || [];
     setCarrito(carritoGuardado);
+
+    const usuarioActivo = JSON.parse(localStorage.getItem('react_usuario_activo'));
+    if (usuarioActivo) {
+      setDatosCliente(prev => ({
+        ...prev,
+        nombre: usuarioActivo.nombre || '',
+        email: usuarioActivo.email || ''
+      }));
+    }
   }, []);
+
+  const handleChangeInput = (e) => {
+    const { name, value } = e.target;
+    setDatosCliente({ ...datosCliente, [name]: value });
+
+    // Limpiar el error del campo que se está modificando
+    if (errores[name]) {
+      setErrores({ ...errores, [name]: '' });
+    }
+  };
+
+  const validarFormulario = () => {
+    const nuevosErrores = {};
+
+    // 1. Validar Nombre
+    if (!datosCliente.nombre.trim()) {
+      nuevosErrores.nombre = 'El nombre completo es obligatorio.';
+    }
+
+    // 2. Validar RUT (Máximo 9 caracteres contando número y dígito verificador, ignorando puntos/guión)
+    const rutLimpio = datosCliente.rut.replace(/[^0-9kK]/g, '');
+    if (!rutLimpio) {
+      nuevosErrores.rut = 'El RUT es obligatorio.';
+    } else if (rutLimpio.length < 8 || rutLimpio.length > 9) {
+      nuevosErrores.rut = 'El RUT debe tener entre 8 y 9 caracteres (Ej: 123456789 o 18765432K).';
+    }
+
+    // 3. Validar Correo (@gmail.com o @losmaestros.cl)
+    const regexEmailDominio = /^[a-zA-Z0-9._%+-]+@(gmail\.com|losmaestros\.cl)$/i;
+    if (!datosCliente.email.trim()) {
+      nuevosErrores.email = 'El correo electrónico es obligatorio.';
+    } else if (!regexEmailDominio.test(datosCliente.email.trim())) {
+      nuevosErrores.email = 'El correo debe terminar en @gmail.com o @losmaestros.cl.';
+    }
+
+    // 4. Validar Dirección
+    if (!datosCliente.direccion.trim()) {
+      nuevosErrores.direccion = 'La dirección de despacho es obligatoria.';
+    }
+
+    setErrores(nuevosErrores);
+    return Object.keys(nuevosErrores).length === 0;
+  };
 
   const eliminarDelCarrito = (id) => {
     const nuevoCarrito = carrito.filter(item => item.id !== id);
@@ -18,41 +81,85 @@ const Carrito = ({ onActualizarCarrito }) => {
   };
 
   const calcularTotal = () => {
-    return carrito.reduce((total, item) => total + item.precio, 0);
+    return carrito.reduce((total, item) => total + (item.precio * (item.cantidad || 1)), 0);
   };
 
-  const procesarPago = () => {
-    // Vaciamos el carrito al pagar
+  const procesarPago = (e) => {
+    e.preventDefault();
+
+    if (carrito.length === 0) return;
+
+    // Ejecutar validaciones antes de procesar la compra
+    if (!validarFormulario()) {
+      return;
+    }
+
+    const nuevoPedido = {
+      cliente: datosCliente.nombre.trim(),
+      rut: datosCliente.rut.trim(),
+      email: datosCliente.email.trim(),
+      direccion: datosCliente.direccion.trim(),
+      total: calcularTotal(),
+      estado: 'Pendiente',
+      items: carrito.map(item => ({
+        id: item.id,
+        nombre: item.nombre,
+        precio: item.precio,
+        cantidad: item.cantidad || 1
+      }))
+    };
+
+    createPedido(nuevoPedido);
     localStorage.removeItem('react_carrito');
     if (onActualizarCarrito) onActualizarCarrito();
-    // Redirigimos a la pantalla de éxito
+
     navigate('/pago-exitoso');
   };
 
   return (
-    <div>
-      <h2 className="fw-bold text-dark mb-4">Tu Carrito de Compras</h2>
+    <div className="container py-2">
+      <h2 className="fw-bold text-dark mb-4">
+        <i className="bi bi-cart3 me-2"></i>Tu Carrito de Compras
+      </h2>
       
       {carrito.length === 0 ? (
-        <div className="alert alert-info shadow-sm">
-          Tu carrito está vacío. <Link to="/" className="alert-link">Vuelve al catálogo</Link> para agregar productos.
+        <div className="alert alert-info shadow-sm py-4 text-center">
+          <h5>Tu carrito está vacío</h5>
+          <p className="mb-3 text-muted">Aún no has agregado productos a tu orden.</p>
+          <Link to="/" className="btn btn-primary fw-bold">
+            <i className="bi bi-arrow-left me-2"></i>Volver al Catálogo
+          </Link>
         </div>
       ) : (
-        <div className="row">
-          <div className="col-md-8">
-            <ul className="list-group mb-3 shadow-sm">
+        <div className="row g-4">
+          {/* Lista de Productos */}
+          <div className="col-lg-7">
+            <ul className="list-group mb-3 shadow-sm border-0">
               {carrito.map(item => (
                 <li key={item.id} className="list-group-item d-flex justify-content-between align-items-center p-3">
                   <div className="d-flex gap-3 align-items-center">
-                    <img src={item.imagen} alt={item.nombre} style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '5px' }} />
+                    <img 
+                      src={item.imagen || 'https://via.placeholder.com/60'} 
+                      alt={item.nombre} 
+                      style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '6px' }} 
+                    />
                     <div>
                       <h6 className="my-0 fw-bold">{item.nombre}</h6>
-                      <small className="text-muted">Cód: {item.id}</small>
+                      <small className="text-muted d-block">Cód: {item.id}</small>
+                      <small className="badge bg-light text-dark border">
+                        Cantidad: {item.cantidad || 1}
+                      </small>
                     </div>
                   </div>
                   <div className="d-flex align-items-center gap-3">
-                    <span className="text-dark fw-bold fs-5">${item.precio.toLocaleString()}</span>
-                    <button className="btn btn-sm btn-outline-danger" onClick={() => eliminarDelCarrito(item.id)}>
+                    <span className="text-danger fw-bold fs-5">
+                      ${((item.precio) * (item.cantidad || 1)).toLocaleString()}
+                    </span>
+                    <button 
+                      className="btn btn-sm btn-outline-danger" 
+                      onClick={() => eliminarDelCarrito(item.id)}
+                      title="Eliminar del carrito"
+                    >
                       <i className="bi bi-trash"></i>
                     </button>
                   </div>
@@ -60,18 +167,84 @@ const Carrito = ({ onActualizarCarrito }) => {
               ))}
             </ul>
           </div>
-          <div className="col-md-4">
+
+          {/* Formulario con Validaciones */}
+          <div className="col-lg-5">
             <div className="card shadow-sm border-0 bg-light">
-              <div className="card-body">
-                <h5 className="card-title fw-bold">Resumen de Compra</h5>
-                <hr />
-                <div className="d-flex justify-content-between mb-4">
-                  <span className="fs-5">Total a pagar:</span>
-                  <strong className="fs-4 text-danger">${calcularTotal().toLocaleString()}</strong>
-                </div>
-                <button className="btn btn-success btn-lg w-100 fw-bold" onClick={procesarPago}>
-                  <i className="bi bi-credit-card-fill me-2"></i> Pagar Ahora
-                </button>
+              <div className="card-body p-4">
+                <h5 className="card-title fw-bold mb-3 text-dark">
+                  <i className="bi bi-person-lines-fill me-2"></i>Datos de Despacho
+                </h5>
+                
+                <form onSubmit={procesarPago} noValidate>
+                  {/* Campo Nombre */}
+                  <div className="mb-3">
+                    <label className="form-label fw-bold small text-muted">Nombre Completo</label>
+                    <input 
+                      type="text" 
+                      className={`form-control ${errores.nombre ? 'is-invalid' : ''}`}
+                      name="nombre" 
+                      value={datosCliente.nombre} 
+                      onChange={handleChangeInput} 
+                      placeholder="Ej. Juan Pérez" 
+                    />
+                    {errores.nombre && <div className="invalid-feedback">{errores.nombre}</div>}
+                  </div>
+
+                  {/* Campo RUT y Email */}
+                  <div className="row g-2 mb-3">
+                    <div className="col-md-6">
+                      <label className="form-label fw-bold small text-muted">RUT</label>
+                      <input 
+                        type="text" 
+                        className={`form-control ${errores.rut ? 'is-invalid' : ''}`}
+                        name="rut" 
+                        value={datosCliente.rut} 
+                        onChange={handleChangeInput} 
+                        placeholder="123456789" 
+                      />
+                      {errores.rut && <div className="invalid-feedback">{errores.rut}</div>}
+                    </div>
+
+                    <div className="col-md-6">
+                      <label className="form-label fw-bold small text-muted">Correo Electrónico</label>
+                      <input 
+                        type="email" 
+                        className={`form-control ${errores.email ? 'is-invalid' : ''}`}
+                        name="email" 
+                        value={datosCliente.email} 
+                        onChange={handleChangeInput} 
+                        placeholder="juan@gmail.com" 
+                      />
+                      {errores.email && <div className="invalid-feedback">{errores.email}</div>}
+                    </div>
+                  </div>
+
+                  {/* Campo Dirección */}
+                  <div className="mb-4">
+                    <label className="form-label fw-bold small text-muted">Dirección de Despacho</label>
+                    <input 
+                      type="text" 
+                      className={`form-control ${errores.direccion ? 'is-invalid' : ''}`}
+                      name="direccion" 
+                      value={datosCliente.direccion} 
+                      onChange={handleChangeInput} 
+                      placeholder="Av. Concha y Toro #1234, Puente Alto" 
+                    />
+                    {errores.direccion && <div className="invalid-feedback">{errores.direccion}</div>}
+                  </div>
+
+                  <hr />
+
+                  <div className="d-flex justify-content-between align-items-center mb-4">
+                    <span className="fs-5 fw-bold text-secondary">Total a Pagar:</span>
+                    <strong className="fs-3 text-danger">${calcularTotal().toLocaleString()}</strong>
+                  </div>
+
+                  <button type="submit" className="btn btn-success btn-lg w-100 fw-bold shadow-sm">
+                    <i className="bi bi-credit-card-fill me-2"></i> Pagar y Confirmar Orden
+                  </button>
+                </form>
               </div>
             </div>
           </div>

@@ -1,75 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { getPedidos, updateEstadoPedido, deletePedido, getProductos, deleteProducto } from '../data/database';
 
 const PanelVendedor = () => {
-  const [vistaActiva, setVistaActiva] = useState('pedidos'); // 'pedidos' | 'productos'
+  const [vistaActiva, setVistaActiva] = useState('pedidos');
   const [pedidos, setPedidos] = useState([]);
   const [productos, setProductos] = useState([]);
   const [filtroEstadoPedido, setFiltroEstadoPedido] = useState('todos');
   const [busquedaProducto, setBusquedaProducto] = useState('');
 
   useEffect(() => {
-    // 1. Cargar o inicializar Pedidos en LocalStorage
-    let pedidosGuardados = JSON.parse(localStorage.getItem('react_pedidos'));
-    if (!pedidosGuardados || pedidosGuardados.length === 0) {
-      pedidosGuardados = [
-        {
-          id: 'ORD-001',
-          fecha: '2026-10-10',
-          cliente: 'Juan Pérez',
-          rut: '12.345.678-9',
-          email: 'juan.perez@example.com',
-          direccion: 'Av. Concha y Toro 1234, Puente Alto',
-          total: 24990,
-          estado: 'Pendiente',
-          items: [
-            { id: 'PROD-001', nombre: 'Martillo Cincelador 16oz', precio: 12990, cantidad: 1 },
-            { id: 'PROD-002', nombre: 'Juego de Destornilladores (6 pzas)', precio: 12000, cantidad: 1 }
-          ]
-        },
-        {
-          id: 'ORD-002',
-          fecha: '2026-10-11',
-          cliente: 'María López',
-          rut: '18.765.432-1',
-          email: 'maria.lopez@example.com',
-          direccion: 'Calle Los Toros 567, Puente Alto',
-          total: 85990,
-          estado: 'En preparación',
-          items: [
-            { id: 'PROD-003', nombre: 'Taladro Inalámbrico 20V', precio: 85990, cantidad: 1 }
-          ]
-        },
-        {
-          id: 'ORD-003',
-          fecha: '2026-10-11',
-          cliente: 'Carlos Mendoza',
-          rut: '15.432.109-K',
-          email: 'carlos.m@example.com',
-          direccion: 'Av. Camilo Henríquez 890, Puente Alto',
-          total: 14500,
-          estado: 'Despachado',
-          items: [
-            { id: 'PROD-004', nombre: 'Sierra Manual para Madera 18"', precio: 14500, cantidad: 1 }
-          ]
-        }
-      ];
-      localStorage.setItem('react_pedidos', JSON.stringify(pedidosGuardados));
-    }
-    setPedidos(pedidosGuardados);
-
-    // 2. Cargar Productos desde LocalStorage
-    const productosGuardados = JSON.parse(localStorage.getItem('react_productos')) || [];
-    setProductos(productosGuardados);
+    // Cargar datos desde la capa centralizada (database.js)
+    setPedidos(getPedidos());
+    setProductos(getProductos());
   }, []);
 
   // --- Funciones para Pedidos ---
-  const actualizarEstadoPedido = (id, nuevoEstado) => {
-    const pedidosActualizados = pedidos.map(pedido =>
-      pedido.id === id ? { ...pedido, estado: nuevoEstado } : pedido
-    );
-    setPedidos(pedidosActualizados);
-    localStorage.setItem('react_pedidos', JSON.stringify(pedidosActualizados));
+  const handleActualizarEstado = (id, nuevoEstado) => {
+    updateEstadoPedido(id, nuevoEstado);
+    setPedidos(getPedidos());
+  };
+
+  const handleEliminarPedido = (id) => {
+    if (window.confirm(`¿Estás seguro de que deseas eliminar permanentemente el pedido ${id}?`)) {
+      deletePedido(id);
+      setPedidos(getPedidos());
+    }
   };
 
   const obtenerBadgeEstado = (estado) => {
@@ -90,11 +46,10 @@ const PanelVendedor = () => {
   };
 
   // --- Funciones para Productos ---
-  const eliminarProducto = (id) => {
+  const handleEliminarProducto = (id) => {
     if (window.confirm(`¿Estás seguro de que deseas eliminar el producto con código ${id}?`)) {
-      const productosActualizados = productos.filter(p => p.id !== id);
-      setProductos(productosActualizados);
-      localStorage.setItem('react_productos', JSON.stringify(productosActualizados));
+      deleteProducto(id);
+      setProductos(getProductos());
     }
   };
 
@@ -110,13 +65,12 @@ const PanelVendedor = () => {
     (p.categoria && p.categoria.toLowerCase().includes(busquedaProducto.toLowerCase()))
   );
 
-  // Cálculos resumidos
   const totalVentas = pedidos.reduce((acc, p) => p.estado !== 'Cancelado' ? acc + p.total : acc, 0);
   const pedidosPendientes = pedidos.filter(p => p.estado === 'Pendiente' || p.estado === 'En preparación').length;
 
   return (
     <div className="container-fluid px-0">
-      {/* Encabezado del Vendedor */}
+      {/* Encabezado */}
       <div className="bg-success text-white p-4 rounded-3 shadow-sm mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
         <div>
           <h2 className="fw-bold mb-1"><i className="bi bi-person-badge me-2"></i>Panel del Vendedor</h2>
@@ -132,7 +86,7 @@ const PanelVendedor = () => {
         </div>
       </div>
 
-      {/* Pestañas de Navegación */}
+      {/* Pestañas */}
       <ul className="nav nav-tabs nav-fill mb-4 border-bottom border-2">
         <li className="nav-item">
           <button
@@ -152,9 +106,7 @@ const PanelVendedor = () => {
         </li>
       </ul>
 
-      {/* ======================================================== */}
-      {/* PESTAÑA 1: GESTIÓN DE PEDIDOS                            */}
-      {/* ======================================================== */}
+      {/* PESTAÑA PEDIDOS */}
       {vistaActiva === 'pedidos' && (
         <div className="card shadow-sm border-0">
           <div className="card-header bg-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
@@ -224,7 +176,7 @@ const PanelVendedor = () => {
                           <select
                             className="form-select form-select-sm border-secondary"
                             value={pedido.estado}
-                            onChange={(e) => actualizarEstadoPedido(pedido.id, e.target.value)}
+                            onChange={(e) => handleActualizarEstado(pedido.id, e.target.value)}
                           >
                             <option value="Pendiente">Pendiente</option>
                             <option value="En preparación">En preparación</option>
@@ -234,13 +186,22 @@ const PanelVendedor = () => {
                           </select>
                         </td>
                         <td className="text-center">
-                          <Link
-                            to={`/vendedor/pedido/${pedido.id}`}
-                            className="btn btn-sm btn-outline-success fw-bold"
-                            title="Ver comprobante y detalle"
-                          >
-                            <i className="bi bi-eye-fill me-1"></i> Ver Detalle
-                          </Link>
+                          <div className="btn-group btn-group-sm">
+                            <Link
+                              to={`/vendedor/pedido/${pedido.id}`}
+                              className="btn btn-outline-success fw-bold"
+                              title="Ver detalle"
+                            >
+                              <i className="bi bi-eye-fill"></i> Detalle
+                            </Link>
+                            <button
+                              className="btn btn-outline-danger"
+                              title="Eliminar pedido"
+                              onClick={() => handleEliminarPedido(pedido.id)}
+                            >
+                              <i className="bi bi-trash-fill"></i>
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))
@@ -252,9 +213,7 @@ const PanelVendedor = () => {
         </div>
       )}
 
-      {/* ======================================================== */}
-      {/* PESTAÑA 2: GESTIÓN DE PRODUCTOS                          */}
-      {/* ======================================================== */}
+      {/* PESTAÑA PRODUCTOS */}
       {vistaActiva === 'productos' && (
         <div className="card shadow-sm border-0">
           <div className="card-header bg-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
@@ -339,7 +298,7 @@ const PanelVendedor = () => {
                             <button
                               className="btn btn-outline-danger"
                               title="Eliminar producto"
-                              onClick={() => eliminarProducto(prod.id)}
+                              onClick={() => handleEliminarProducto(prod.id)}
                             >
                               <i className="bi bi-trash"></i>
                             </button>
