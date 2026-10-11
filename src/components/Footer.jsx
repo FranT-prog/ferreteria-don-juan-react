@@ -48,14 +48,20 @@ const Footer = () => {
           <div className="col-12 col-md-4 mb-3">
             <h5 className="text-warning fw-bold">Contacto</h5>
             <ul className="list-unstyled small text-secondary">
-              <li className="mb-1">
-                <i className="bi bi-geo-alt-fill me-2"></i>Santiago, Chile
+              <li className="mb-2">
+                <i className="bi bi-geo-alt-fill me-2"></i>Av. Francisco de Aguirre 450, La Serena
               </li>
-              <li className="mb-1">
+              <li className="mb-2">
                 <i className="bi bi-telephone-fill me-2"></i>+56 9 1234 5678
               </li>
-              <li className="mb-1">
-                <i className="bi bi-envelope-fill me-2"></i>contacto@losmaestros.cl
+              <li className="mb-2">
+                <i className="bi bi-envelope-fill me-2"></i>contacto@donjuan.cl
+              </li>
+              <li className="mb-2">
+                <i className="bi bi-clock-fill me-2"></i>Lun-Vie: 8:30 - 18:30
+              </li>
+              <li className="mb-2">
+                <i className="bi bi-clock-fill me-2"></i>Sáb: 9:00 - 14:00
               </li>
             </ul>
             <div className="d-flex gap-3 fs-5 mt-2">

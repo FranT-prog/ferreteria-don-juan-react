@@ -6,6 +6,7 @@ import { inicializarBaseDeDatos } from './data/database';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Home from './pages/Home';
+import Contacto from './pages/Contacto';
 import Catalogo from './pages/Catalogo';
 import Carrito from './pages/Carrito';
 import PagoExitoso from './pages/PagoExitoso';
@@ -45,6 +46,7 @@ function App() {
           <Route path="/carrito" element={<Carrito onActualizarCarrito={actualizarContador} />} />
           <Route path="/pago-exitoso" element={<PagoExitoso />} />
           <Route path="/detalle/:id" element={<DetalleProducto onActualizarCarrito={actualizarContador} />} />
+          <Route path="/contacto" element={<Contacto />} />
           <Route path="/nosotros" element={<Nosotros />} />
           <Route path="/blog" element={<Blog />} />
 

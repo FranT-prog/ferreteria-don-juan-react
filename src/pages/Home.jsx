@@ -203,7 +203,7 @@ const Home = () => {
                 <ul className="list-unstyled mb-0">
                   <li className="d-flex justify-content-between py-2 border-bottom border-secondary">
                     <span><i className="bi bi-calendar-week me-2"></i>Lunes a Viernes</span>
-                    <strong>8:00 - 19:00</strong>
+                    <strong>8:00 - 18:30</strong>
                   </li>
                   <li className="d-flex justify-content-between py-2 border-bottom border-secondary">
                     <span><i className="bi bi-calendar-week me-2"></i>Sábado</span>
@@ -227,7 +227,7 @@ const Home = () => {
                 <ul className="list-unstyled mb-4">
                   <li className="mb-3">
                     <i className="bi bi-geo-alt-fill me-2"></i>
-                    Av. Los Maestros 1234, Santiago
+                    Av. Francisco de Aguirre 450, La Serena
                   </li>
                   <li className="mb-3">
                     <i className="bi bi-telephone-fill me-2"></i>
@@ -235,7 +235,7 @@ const Home = () => {
                   </li>
                   <li className="mb-3">
                     <i className="bi bi-envelope-fill me-2"></i>
-                    contacto@losmaestros.cl
+                    contacto@donjuan.cl
                   </li>
                 </ul>
                 <Link to="/contacto" className="btn btn-light fw-bold">
