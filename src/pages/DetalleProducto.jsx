@@ -102,8 +102,8 @@ const DetalleProducto = ({ onActualizarCarrito }) => {
       
       <div className="mt-4 p-4 bg-white shadow-sm rounded">
         <h4>Descripción del Producto</h4>
-        <p className="text-muted m-0">
-          Esta es una descripción detallada simulada para {producto.nombre}. Aquí podrías agregar especificaciones técnicas, materiales, dimensiones, peso y consejos de uso. 
+        <p className="lead text-secondary mb-4">
+          {producto.descripcion || 'Este producto no cuenta con especificaciones detalladas registradas por el momento.'}
         </p>
       </div>
     </div>
