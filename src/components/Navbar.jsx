@@ -6,7 +6,7 @@ const Navbar = ({ contadorCarrito }) => {
     <nav className="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
       <div className="container">
         <Link className="navbar-brand fw-bold text-warning" to="/">
-          <i className="bi bi-tools me-2"></i>Ferretería Los Maestros
+          <i className="bi bi-tools me-2"></i>Ferretería Don Juan
         </Link>
         <button 
           className="navbar-toggler" 

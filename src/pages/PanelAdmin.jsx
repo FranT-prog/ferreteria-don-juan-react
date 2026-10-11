@@ -136,6 +136,9 @@ const PanelAdmin = () => {
         <div className="card shadow-sm border-0 animate__animated animate__fadeIn">
           <div className="card-header bg-white py-3 d-flex justify-content-between align-items-center">
             <h5 className="fw-bold mb-0"><i className="bi bi-person-lines-fill me-2"></i>Directorio de Usuarios</h5>
+            <Link to="/admin/usuario/nuevo" className="btn btn-sm btn-dark">
+              <i className="bi bi-person-plus-fill me-1"></i> Nuevo Usuario
+            </Link>
           </div>
           <div className="card-body p-0">
             <div className="table-responsive">

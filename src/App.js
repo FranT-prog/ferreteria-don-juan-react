@@ -11,6 +11,7 @@ import PanelAdmin from './pages/PanelAdmin';
 import FormularioProducto from './pages/FormularioProducto';
 import EditarProducto from './pages/EditarProducto';
 import DetalleProducto from './pages/DetalleProducto';
+import FormularioUsuario from './pages/FormularioUsuario';
 
 // Vistas del Vendedor
 import PanelVendedor from './pages/PanelVendedor';
@@ -44,6 +45,7 @@ function App() {
           <Route path="/admin" element={<PanelAdmin />} />
           <Route path="/admin/nuevo" element={<FormularioProducto />} />
           <Route path="/admin/editar/:id" element={<EditarProducto />} />
+          <Route path="/admin/usuario/nuevo" element={<FormularioUsuario />} />
 
           {/* Rutas del Vendedor */}
           <Route path="/vendedor" element={<PanelVendedor />} />
