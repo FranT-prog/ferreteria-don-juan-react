@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 
 const PanelAdmin = () => {
   const [productos, setProductos] = useState([]);
@@ -23,9 +24,9 @@ const PanelAdmin = () => {
         <h2 className="fw-bold" style={{ color: '#D84315' }}>
           <i className="bi bi-gear-fill me-2"></i>Panel de Administración
         </h2>
-        <button className="btn btn-warning fw-bold text-dark">
-          <i className="bi bi-plus-lg me-1"></i> Nuevo Producto
-        </button>
+        <Link to="/admin/nuevo" className="btn btn-warning fw-bold text-dark">
+            <i className="bi bi-plus-lg me-1"></i> Nuevo Producto
+        </Link>
       </div>
 
       <div className="card shadow-sm border-0">
@@ -64,9 +65,9 @@ const PanelAdmin = () => {
                         </span>
                       </td>
                       <td>
-                        <button className="btn btn-sm btn-outline-primary me-2" title="Editar">
-                          <i className="bi bi-pencil-square"></i>
-                        </button>
+                        <Link to={`/admin/editar/${prod.id}`} className="btn btn-sm btn-outline-primary me-2" title="Editar">
+                            <i className="bi bi-pencil-square"></i>
+                        </Link>
                         <button 
                           className="btn btn-sm btn-outline-danger" 
                           title="Eliminar"

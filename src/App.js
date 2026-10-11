@@ -6,6 +6,9 @@ import Catalogo from './pages/Catalogo';
 import Carrito from './pages/Carrito';
 import PagoExitoso from './pages/PagoExitoso';
 import PanelAdmin from './pages/PanelAdmin';
+import FormularioProducto from './pages/FormularioProducto';
+import DetalleProducto from './pages/DetalleProducto';
+import EditarProducto from './pages/EditarProducto';
 
 function App() {
   const [cantCarrito, setCantCarrito] = useState(0);
@@ -30,6 +33,9 @@ function App() {
           <Route path="/carrito" element={<Carrito onActualizarCarrito={actualizarContador} />} />
           <Route path="/pago-exitoso" element={<PagoExitoso />} />
           <Route path="/admin" element={<PanelAdmin />} />
+          <Route path="/admin/nuevo" element={<FormularioProducto />} />
+          <Route path="/detalle/:id" element={<DetalleProducto onActualizarCarrito={actualizarContador} />} />
+          <Route path="/admin/editar/:id" element={<EditarProducto />} />
         </Routes>
       </div>
     </BrowserRouter>
