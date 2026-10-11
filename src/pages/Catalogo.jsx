@@ -7,7 +7,6 @@ const Catalogo = ({ onActualizarCarrito }) => {
   const [categoria, setCategoria] = useState('Todas');
 
   useEffect(() => {
-    // Inicializar catálogo si no existe en localStorage
     let productosGuardados = JSON.parse(localStorage.getItem('react_productos'));
     
     if (!productosGuardados || productosGuardados.length === 0) {
@@ -24,28 +23,26 @@ const Catalogo = ({ onActualizarCarrito }) => {
     setProductos(productosGuardados);
   }, []);
 
-  // Lógica de filtrado doble (Por nombre y por categoría)
   const productosFiltrados = productos.filter(prod => {
     const coincideBusqueda = prod.nombre.toLowerCase().includes(busqueda.toLowerCase());
     const coincideCategoria = categoria === 'Todas' || prod.categoria === categoria;
     return coincideBusqueda && coincideCategoria;
   });
 
-  // Extraer categorías únicas para el selector dinámico
   const categoriasUnicas = ['Todas', ...new Set(productos.map(p => p.categoria || 'Sin categoría'))];
 
   return (
     <div>
-      <div className="bg-dark text-white p-4 rounded-3 shadow-sm mb-4 text-center">
-        <h1 className="fw-bold mb-2">Catálogo de Productos</h1>
-        <p className="text-white-50 mb-0">Encuentra las mejores herramientas y materiales para tu proyecto.</p>
+      <div className="bg-dark text-white p-3 p-md-4 rounded-3 shadow-sm mb-3 mb-md-4 text-center">
+        <h1 className="fw-bold mb-2 fs-3 fs-md-1">Catálogo de Productos</h1>
+        <p className="text-white-50 mb-0 small small-md">Encuentra las mejores herramientas y materiales para tu proyecto.</p>
       </div>
 
-      {/* SECCIÓN DE FILTROS DE BÚSQUEDA */}
-      <div className="card shadow-sm border-0 mb-4 bg-light">
-        <div className="card-body">
-          <div className="row g-3">
-            <div className="col-md-8">
+      {/* FILTROS */}
+      <div className="card shadow-sm border-0 mb-3 mb-md-4 bg-light">
+        <div className="card-body p-3">
+          <div className="row g-2 g-md-3">
+            <div className="col-12 col-md-8">
               <div className="input-group">
                 <span className="input-group-text bg-white border-end-0 text-muted">
                   <i className="bi bi-search"></i>
@@ -53,13 +50,13 @@ const Catalogo = ({ onActualizarCarrito }) => {
                 <input 
                   type="text" 
                   className="form-control border-start-0" 
-                  placeholder="Buscar producto por nombre..." 
+                  placeholder="Buscar producto..." 
                   value={busqueda}
                   onChange={(e) => setBusqueda(e.target.value)}
                 />
               </div>
             </div>
-            <div className="col-md-4">
+            <div className="col-12 col-md-4">
               <select 
                 className="form-select fw-bold text-secondary"
                 value={categoria}
@@ -74,8 +71,8 @@ const Catalogo = ({ onActualizarCarrito }) => {
         </div>
       </div>
 
-      {/* GRILLA DE PRODUCTOS */}
-      <div className="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+      {/* GRILLA */}
+      <div className="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-3 g-md-4">
         {productosFiltrados.length === 0 ? (
           <div className="col-12 text-center py-5">
             <i className="bi bi-search display-1 text-muted mb-3 d-block"></i>
