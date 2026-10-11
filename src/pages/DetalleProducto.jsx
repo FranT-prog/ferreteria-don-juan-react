@@ -27,29 +27,18 @@ const DetalleProducto = ({ onActualizarCarrito }) => {
 
   const handleCarrito = () => {
     let carritoActual = JSON.parse(localStorage.getItem('react_carrito')) || [];
-    let productos = JSON.parse(localStorage.getItem('react_productos')) || [];
-
+    
     if (enCarrito) {
-      // Quitar del carrito → DEVOLVER 1 al stock
       carritoActual = carritoActual.filter(item => item.id !== id);
-      productos = productos.map(p =>
-        p.id === id ? { ...p, stock: p.stock + 1 } : p
-      );
       setEnCarrito(false);
     } else {
-      // Agregar al carrito → DESCONTAR 1 del stock
       carritoActual.push(producto);
-      productos = productos.map(p =>
-        p.id === id ? { ...p, stock: Math.max(0, p.stock - 1) } : p
-      );
       setEnCarrito(true);
     }
 
     localStorage.setItem('react_carrito', JSON.stringify(carritoActual));
-    localStorage.setItem('react_productos', JSON.stringify(productos));
     if (onActualizarCarrito) onActualizarCarrito();
-    window.location.reload();
-  };
+};
 
   if (!producto) {
     return <div className="text-center mt-5">Cargando...</div>;

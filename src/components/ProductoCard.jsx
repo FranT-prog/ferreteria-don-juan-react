@@ -15,15 +15,6 @@ const ProductoCard = ({ producto, onActualizarCarrito }) => {
     }
 
     localStorage.setItem('react_carrito', JSON.stringify(carrito));
-    let productos = JSON.parse(localStorage.getItem('react_productos')) || [];
-  productos = productos.map(p =>
-    p.id === producto.id
-      ? { ...p, stock: Math.max(0, p.stock - 1) }
-      : p
-  );
-  localStorage.setItem('react_productos', JSON.stringify(productos));
-  window.location.reload();
-
     if (onActualizarCarrito) onActualizarCarrito();
   };
 

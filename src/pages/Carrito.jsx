@@ -109,6 +109,17 @@ const Carrito = ({ onActualizarCarrito }) => {
       }))
     };
 
+    // DESCONTAR STOCK DE CADA PRODUCTO COMPRADO
+    let productos = JSON.parse(localStorage.getItem('react_productos')) || [];
+    carrito.forEach(item => {
+      productos = productos.map(p =>
+        p.id === item.id
+          ? { ...p, stock: Math.max(0, p.stock - (item.cantidad || 1)) }
+          : p
+      );
+    });
+    localStorage.setItem('react_productos', JSON.stringify(productos));
+
     createPedido(nuevoPedido);
     localStorage.removeItem('react_carrito');
     if (onActualizarCarrito) onActualizarCarrito();
