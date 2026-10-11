@@ -31,7 +31,7 @@ const Home = () => {
             <i className="bi bi-star-fill me-1"></i>Ferretería N°1 de la Región
           </span>
           <h1 className="display-3 fw-bold mb-3">
-            Ferretería <span className="text-warning">Los Maestros</span>
+         <span className="text-warning">Ferretería Don Juan</span>
           </h1>
           <p className="lead mb-4 fs-4">
             Todo lo que necesitas para construir tus sueños, en un solo lugar

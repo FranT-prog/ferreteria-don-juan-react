@@ -9,7 +9,7 @@ const Footer = () => {
           {/* Columna 1: Info de la tienda */}
           <div className="col-12 col-md-4 mb-3">
             <h5 className="text-warning fw-bold">
-              <i className="bi bi-tools me-2"></i>Ferretería Los Maestros
+              <i className="bi bi-tools me-2"></i>Ferretería Don Juan
             </h5>
             <p className="text-secondary small">
               Tu ferretería de confianza. Encuentra herramientas manuales,

@@ -13,7 +13,7 @@ const Navbar = ({ contadorCarrito, usuarioActivo, onLogout }) => {
     <nav className="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
       <div className="container">
         <Link className="navbar-brand fw-bold text-warning" to="/">
-          <i className="bi bi-tools me-2"></i>Ferretería Los Maestros
+          <i className="bi bi-tools me-2"></i>Ferretería Don Juan
         </Link>
         <button 
           className="navbar-toggler" 
@@ -26,8 +26,13 @@ const Navbar = ({ contadorCarrito, usuarioActivo, onLogout }) => {
 
         <div className="collapse navbar-collapse" id="navbarNav">
           <ul className="navbar-nav me-auto">
+            {/* 👇 NUEVO: enlace Inicio */}
             <li className="nav-item">
-              <NavLink className={({ isActive }) => `nav-link ${isActive ? 'active fw-bold' : ''}`} to="/">Catálogo</NavLink>
+              <NavLink className={({ isActive }) => `nav-link ${isActive ? 'active fw-bold' : ''}`} to="/">Inicio</NavLink>
+            </li>
+            {/* 👇 CAMBIO: antes decía "Catálogo" apuntando a "/", ahora apunta a "/catalogo" */}
+            <li className="nav-item">
+              <NavLink className={({ isActive }) => `nav-link ${isActive ? 'active fw-bold' : ''}`} to="/catalogo">Catálogo</NavLink>
             </li>
             <li className="nav-item">
               <NavLink className={({ isActive }) => `nav-link ${isActive ? 'active fw-bold' : ''}`} to="/nosotros">Nosotros</NavLink>

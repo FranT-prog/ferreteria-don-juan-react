@@ -268,7 +268,7 @@ const Contacto = () => {
                 <i className="bi bi-envelope-fill text-warning fs-4 me-3"></i>
                 <div>
                   <strong>Correo</strong>
-                  <p className="text-muted mb-0 small">contacto@losmaestros.cl</p>
+                  <p className="text-muted mb-0 small">contacto@donjuan.cl</p>
                 </div>
               </div>
 
