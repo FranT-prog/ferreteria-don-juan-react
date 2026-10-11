@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { inicializarBaseDeDatos } from './data/database';
 
 // Importación de componentes
 import Navbar from './components/Navbar';
@@ -23,6 +24,10 @@ function App() {
     const total = carritoGuardado.reduce((acc, item) => acc + (item.cantidad || 1), 0);
     setContadorCarrito(total);
   };
+    useEffect(() => {
+    inicializarBaseDeDatos();
+    actualizarContador();
+  }, []);
 
   return (
     <BrowserRouter>
