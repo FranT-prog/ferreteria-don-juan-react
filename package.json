@@ -10,6 +10,7 @@
     "bootstrap": "^5.3.8",
     "bootstrap-icons": "^1.13.2",
     "react": "^19.3.0",
+    "react-bootstrap": "^2.10.10",
     "react-dom": "^19.3.0",
     "react-router-dom": "^7.18.4",
     "react-scripts": "5.0.1",
@@ -19,6 +20,7 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
+    "test:karma": "karma start",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
@@ -38,5 +40,13 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "jasmine-core": "^7.0.2",
+    "karma": "^6.4.4",
+    "karma-chrome-launcher": "^3.2.0",
+    "karma-coverage": "^2.2.1",
+    "karma-jasmine": "^5.1.0",
+    "karma-webpack": "^5.0.1"
   }
 }
