@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Categorias from './pages/Categorias';
 import CategoriaDetalle from './pages/CategoriaDetalle';
+import Ofertas from './pages/Ofertas';
 import Footer from './components/Footer';
 import Home from './pages/Home';
 import Contacto from './pages/Contacto';
@@ -67,6 +68,7 @@ function App() {
           <Route path="/registro" element={<Registro />} />
           <Route path="/categorias" element={<Categorias />} />
           <Route path="/categoria/:categoria" element={<CategoriaDetalle />} />
+          <Route path="/ofertas" element={<Ofertas />} />
 
           {/* Rutas de Administración */}
           <Route path="/admin" element={
