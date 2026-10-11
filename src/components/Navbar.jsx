@@ -33,6 +33,16 @@ const Navbar = ({ contadorCarrito }) => {
                 <i className="bi bi-person-badge me-1"></i>Vendedor
               </NavLink>
             </li>
+            <li className="nav-item">
+              <NavLink className={({ isActive }) => `nav-link ${isActive ? 'active fw-bold' : ''}`} to="/nosotros">
+                Nosotros
+              </NavLink>
+            </li>
+            <li className="nav-item">
+              <NavLink className={({ isActive }) => `nav-link ${isActive ? 'active fw-bold' : ''}`} to="/blog">
+                Blog & Tips
+              </NavLink>
+            </li>
           </ul>
           
           <div className="d-flex">

@@ -12,6 +12,8 @@ import FormularioProducto from './pages/FormularioProducto';
 import EditarProducto from './pages/EditarProducto';
 import DetalleProducto from './pages/DetalleProducto';
 import FormularioUsuario from './pages/FormularioUsuario';
+import Nosotros from './pages/Nosotros';
+import Blog from './pages/Blog';
 
 // Vistas del Vendedor
 import PanelVendedor from './pages/PanelVendedor';
@@ -40,6 +42,8 @@ function App() {
           <Route path="/carrito" element={<Carrito onActualizarCarrito={actualizarContador} />} />
           <Route path="/pago-exitoso" element={<PagoExitoso />} />
           <Route path="/detalle/:id" element={<DetalleProducto onActualizarCarrito={actualizarContador} />} />
+          <Route path="/nosotros" element={<Nosotros />} />
+          <Route path="/blog" element={<Blog />} />
 
           {/* Rutas de Administración */}
           <Route path="/admin" element={<PanelAdmin />} />
