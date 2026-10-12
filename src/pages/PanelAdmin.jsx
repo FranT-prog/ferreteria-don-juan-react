@@ -187,9 +187,6 @@ const PanelAdmin = () => {
             <Link to="/" className="btn btn-dark w-100 mb-2 text-start">
               <i className="bi bi-shop me-2"></i> Tienda
             </Link>
-            <button className="btn btn-danger w-100 text-start">
-              <i className="bi bi-box-arrow-left me-2"></i> Cerrar Sesión
-            </button>
           </div>
         </div>
       </div>
