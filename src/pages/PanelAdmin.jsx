@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   getUsuarios, 
-  updateEstadoUsuario, 
-  deleteUsuario, 
   getProductos, 
   deleteProducto, 
   getPedidos, 
@@ -17,6 +15,8 @@ import PerfilAdmin from './PerfilAdmin';
 
 const PanelAdmin = () => {
   const [vistaActiva, setVistaActiva] = useState('dashboard');
+  const [menuMovilAbierto, setMenuMovilAbierto] = useState(false);
+
   const [usuarios, setUsuarios] = useState([]);
   const [productos, setProductos] = useState([]);
   const [pedidos, setPedidos] = useState([]);
@@ -24,7 +24,6 @@ const PanelAdmin = () => {
   // Filtros de búsqueda
   const [filtroEstadoPedido, setFiltroEstadoPedido] = useState('todos');
   const [busquedaProducto, setBusquedaProducto] = useState('');
-  const [busquedaUsuario, setBusquedaUsuario] = useState('');
 
   useEffect(() => {
     cargarDatos();
@@ -36,7 +35,6 @@ const PanelAdmin = () => {
     setPedidos(getPedidos());
   };
 
-  // --- Funciones (Mantenemos las mismas) ---
   const handleActualizarEstadoPedido = (id, nuevoEstado) => {
     updateEstadoPedido(id, nuevoEstado);
     setPedidos(getPedidos());
@@ -67,7 +65,12 @@ const PanelAdmin = () => {
     }
   };
 
-  // Cuentas y Métricas
+  const cambiarVista = (vista) => {
+    setVistaActiva(vista);
+    setMenuMovilAbierto(false); // Cierra el menú al hacer clic en móvil
+  };
+
+  // Métricas
   const totalIngresos = pedidos.reduce((acc, p) => p.estado !== 'Cancelado' ? acc + p.total : acc, 0);
 
   // Listas Filtradas
@@ -75,172 +78,126 @@ const PanelAdmin = () => {
   const productosFiltrados = productos.filter(p => p.nombre.toLowerCase().includes(busquedaProducto.toLowerCase()) || p.id.toLowerCase().includes(busquedaProducto.toLowerCase()));
 
   return (
-    <div className="d-flex" style={{ minHeight: '100vh', backgroundColor: '#f4f5f7' }}>
+    <div className="d-flex position-relative" style={{ minHeight: '100vh', backgroundColor: '#f4f5f7' }}>
       
-      {/* ========================================== */}
-      {/* BOTÓN HAMBURGUESA (abajo a la izquierda) */}
-      {/* ========================================== */}
+      {/* BOTÓN HAMBURGUESA (Solo visible en móviles) */}
       <button 
         className="btn btn-dark d-md-none position-fixed bottom-0 start-0 m-3 rounded-circle shadow"
         style={{ zIndex: 1100, width: '55px', height: '55px' }}
         type="button"
-        data-bs-toggle="offcanvas"
-        data-bs-target="#sidebarAdmin"
-        aria-controls="sidebarAdmin"
+        onClick={() => setMenuMovilAbierto(!menuMovilAbierto)}
       >
-        <i className="bi bi-list fs-4"></i>
+        <i className={`bi ${menuMovilAbierto ? 'bi-x-lg' : 'bi-list'} fs-4`}></i>
       </button>
 
-      {/* ========================================== */}
-      {/* SIDEBAR DEL ADMIN (con offcanvas de Bootstrap) */}
-      {/* ========================================== */}
-      
-{/* SIDEBAR DEL ADMIN: PC Y CELULAR */}
-<div
-  className="offcanvas-md offcanvas-start bg-white border-end shadow-sm sidebar-admin"
-  tabIndex="-1"
-  id="sidebarAdmin"
-  aria-labelledby="sidebarAdminLabel"
->
-  <div className="offcanvas-header bg-dark text-white">
-    <h5
-      className="offcanvas-title fw-bold"
-      id="sidebarAdminLabel"
-    >
-      don juan
-    </h5>
+      {/* FONDO OSCURO PARA MÓVIL (Backdrop) */}
+      {menuMovilAbierto && (
+        <div 
+          className="position-fixed top-0 start-0 w-100 h-100 bg-dark opacity-50 d-md-none" 
+          style={{ zIndex: 1040 }}
+          onClick={() => setMenuMovilAbierto(false)}
+        ></div>
+      )}
 
-    <button
-      type="button"
-      className="btn-close btn-close-white d-md-none"
-      data-bs-dismiss="offcanvas"
-      aria-label="Cerrar menú"
-    />
-  </div>
-
-  <div className="offcanvas-body p-0 d-flex flex-column">
-    <ul className="nav nav-pills flex-column mb-auto p-3 gap-1">
-      <li className="nav-item">
-        <button
-          className={`nav-link text-start w-100 ${
-            vistaActiva === 'dashboard'
-              ? 'active bg-primary text-white'
-              : 'text-dark'
-          }`}
-          onClick={() => setVistaActiva('dashboard')}
-        >
-          <i className="bi bi-grid-fill me-2"></i>
-          Dashboard
-        </button>
-      </li>
-
-      <li>
-        <button
-          className={`nav-link text-start w-100 ${
-            vistaActiva === 'pedidos'
-              ? 'active bg-primary text-white'
-              : 'text-dark'
-          }`}
-          onClick={() => setVistaActiva('pedidos')}
-        >
-          <i className="bi bi-cart-fill me-2"></i>
-          Órdenes
-        </button>
-      </li>
-
-      <li>
-        <button
-          className={`nav-link text-start w-100 ${
-            vistaActiva === 'productos'
-              ? 'active bg-primary text-white'
-              : 'text-dark'
-          }`}
-          onClick={() => setVistaActiva('productos')}
-        >
-          <i className="bi bi-box-seam me-2"></i>
-          Productos
-        </button>
-      </li>
-
-      <li>
-        <button
-          className={`nav-link text-start w-100 ${
-            vistaActiva === 'categorias'
-              ? 'active bg-primary text-white'
-              : 'text-dark'
-          }`}
-          onClick={() => setVistaActiva('categorias')}
-        >
-          <i className="bi bi-tags-fill me-2"></i>
-          Categorías
-        </button>
-      </li>
-
-      <li>
-        <button
-          className={`nav-link text-start w-100 ${
-            vistaActiva === 'usuarios'
-              ? 'active bg-primary text-white'
-              : 'text-dark'
-          }`}
-          onClick={() => setVistaActiva('usuarios')}
-        >
-          <i className="bi bi-people-fill me-2"></i>
-          Usuarios
-        </button>
-      </li>
-
-      <li>
-        <button
-          className={`nav-link text-start w-100 ${
-            vistaActiva === 'reportesProductos'
-              ? 'active bg-primary text-white'
-              : 'text-dark'
-          }`}
-          onClick={() => setVistaActiva('reportesProductos')}
-        >
-          <i className="bi bi-bar-chart-fill me-2"></i>
-          Reportes
-        </button>
-      </li>
-
-      <hr className="text-muted my-2" />
-
-      <li>
-        <button
-          className={`nav-link text-start w-100 ${
-            vistaActiva === 'perfil'
-              ? 'active bg-primary text-white'
-              : 'text-dark'
-          }`}
-          onClick={() => setVistaActiva('perfil')}
-        >
-          <i className="bi bi-person-circle me-2"></i>
-          Perfil
-        </button>
-      </li>
-    </ul>
-
-    <div className="p-3 border-top">
-      <Link to="/" className="btn btn-dark w-100 mb-2 text-start">
-        <i className="bi bi-shop me-2"></i>
-        Tienda
-      </Link>
-
-      <button className="btn btn-danger w-100 text-start">
-        <i className="bi bi-box-arrow-left me-2"></i>
-        Cerrar Sesión
-      </button>
-    </div>
-  </div>
-</div>
-
-      {/* ========================================== */}
-      {/* CONTENIDO PRINCIPAL */}
-      {/* ========================================== */}
-      <div className="flex-grow-1 p-4 overflow-auto">
+      {/* SIDEBAR DEL ADMIN */}
+      <div 
+        className={`bg-white border-end shadow-sm d-flex flex-column flex-shrink-0 ${
+          menuMovilAbierto ? 'position-fixed top-0 start-0 h-100' : 'd-none d-md-flex'
+        }`}
+        style={{ 
+          width: '250px',
+          minHeight: '100vh',
+          zIndex: 1050,
+          transition: 'all 0.3s ease'
+        }}
+      >
+        <div className="p-3 bg-dark text-white d-flex justify-content-between align-items-center">
+          <h5 className="m-0 fw-bold">don juan</h5>
+          <button 
+            type="button" 
+            className="btn-close btn-close-white d-md-none" 
+            onClick={() => setMenuMovilAbierto(false)}
+          ></button>
+        </div>
         
-        {/* VISTA 1: DASHBOARD (Diseño de la imagen) */}
+        <div className="p-0 d-flex flex-column flex-grow-1 justify-content-between">
+          <ul className="nav nav-pills flex-column mb-auto p-3 gap-1">
+            <li className="nav-item">
+              <button 
+                className={`nav-link text-start w-100 ${vistaActiva === 'dashboard' ? 'active bg-primary text-white' : 'text-dark'}`} 
+                onClick={() => cambiarVista('dashboard')}
+              >
+                <i className="bi bi-grid-fill me-2"></i> Dashboard
+              </button>
+            </li>
+            <li>
+              <button 
+                className={`nav-link text-start w-100 ${vistaActiva === 'pedidos' ? 'active bg-primary text-white' : 'text-dark'}`} 
+                onClick={() => cambiarVista('pedidos')}
+              >
+                <i className="bi bi-cart-fill me-2"></i> Órdenes
+              </button>
+            </li>
+            <li>
+              <button 
+                className={`nav-link text-start w-100 ${vistaActiva === 'productos' ? 'active bg-primary text-white' : 'text-dark'}`} 
+                onClick={() => cambiarVista('productos')}
+              >
+                <i className="bi bi-box-seam me-2"></i> Productos
+              </button>
+            </li>
+            <li>
+              <button 
+                className={`nav-link text-start w-100 ${vistaActiva === 'categorias' ? 'active bg-primary text-white' : 'text-dark'}`} 
+                onClick={() => cambiarVista('categorias')}
+              >
+                <i className="bi bi-tags-fill me-2"></i> Categorías
+              </button>
+            </li>
+            <li>
+              <button 
+                className={`nav-link text-start w-100 ${vistaActiva === 'usuarios' ? 'active bg-primary text-white' : 'text-dark'}`} 
+                onClick={() => cambiarVista('usuarios')}
+              >
+                <i className="bi bi-people-fill me-2"></i> Usuarios
+              </button>
+            </li>
+            <li>
+              <button 
+                className={`nav-link text-start w-100 ${vistaActiva === 'reportesProductos' ? 'active bg-primary text-white' : 'text-dark'}`} 
+                onClick={() => cambiarVista('reportesProductos')}
+              >
+                <i className="bi bi-bar-chart-fill me-2"></i> Reportes
+              </button>
+            </li>
+            
+            <hr className="text-muted my-2" />
+            
+            <li>
+              <button 
+                className={`nav-link text-start w-100 ${vistaActiva === 'perfil' ? 'active bg-primary text-white' : 'text-dark'}`} 
+                onClick={() => cambiarVista('perfil')}
+              >
+                <i className="bi bi-person-circle me-2"></i> Perfil
+              </button>
+            </li>
+          </ul>
+
+          <div className="p-3 border-top">
+            <Link to="/" className="btn btn-dark w-100 mb-2 text-start">
+              <i className="bi bi-shop me-2"></i> Tienda
+            </Link>
+            <button className="btn btn-danger w-100 text-start">
+              <i className="bi bi-box-arrow-left me-2"></i> Cerrar Sesión
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* CONTENIDO PRINCIPAL */}
+      <div className="flex-grow-1 p-4 overflow-auto" style={{ width: '100%' }}>
+        
+        {/* VISTA 1: DASHBOARD */}
         {vistaActiva === 'dashboard' && (
           <div>
             <div className="mb-4">
@@ -307,7 +264,7 @@ const PanelAdmin = () => {
                       </div>
                     </Link>
                   ) : (
-                    <div className="card border-0 shadow-sm h-100 text-center p-3 action-card" style={{cursor: 'pointer'}} onClick={() => setVistaActiva(item.id)}>
+                    <div className="card border-0 shadow-sm h-100 text-center p-3 action-card" style={{cursor: 'pointer'}} onClick={() => cambiarVista(item.id)}>
                       <div className="card-body">
                         <i className={`bi ${item.icon} ${item.color} fs-1 mb-2`}></i>
                         <h6 className="fw-bold text-dark">{item.title}</h6>
@@ -321,7 +278,7 @@ const PanelAdmin = () => {
           </div>
         )}
 
-        {/* LAS OTRAS VISTAS SE MANTIENEN IGUAL */}
+        {/* OTRAS VISTAS */}
         {vistaActiva === 'pedidos' && (
           <div className="card shadow-sm border-0">
             <div className="card-header bg-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
