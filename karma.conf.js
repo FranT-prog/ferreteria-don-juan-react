@@ -8,7 +8,7 @@ module.exports = function (config) {
       require('karma-jasmine'),
       require('karma-webpack'),
       require('karma-chrome-launcher'),
-      require('karma-coverage') // 👈 Agregado para el informe
+      require('karma-coverage') //  Agregado para el informe
     ],
 
     // Solo buscaremos archivos .jsx para evitar advertencias
@@ -19,7 +19,7 @@ module.exports = function (config) {
     // Preprocesamos los archivos con webpack y coverage
     preprocessors: {
       'src/**/*.spec.jsx': ['webpack'],
-      'src/**/*.jsx': ['coverage'] // 👈 Agregado para medir cobertura
+      'src/**/*.jsx': ['coverage'] // Agregado para medir cobertura
     },
 
     // Configuración de Webpack para que entienda React (JSX)
@@ -44,14 +44,14 @@ module.exports = function (config) {
       }
     },
 
-    // 👇 Aquí configuramos los reportes
+    // Aquí configuramos los reportes
     reporters: ['progress', 'coverage'], // 'progress' para la terminal, 'coverage' para el HTML
 
-    // 👇 Aquí configuramos cómo se genera el informe de cobertura
+    // Aquí configuramos cómo se genera el informe de cobertura
         coverageReporter: {
       reporters: [
         { type: 'html', dir: 'coverage/' },
-        { type: 'text-summary' } // 👈 Esto hace que aparezca en la terminal
+        { type: 'text-summary' } //  Esto hace que aparezca en la terminal
       ]
     },
 

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { getPedidos, updateEstadoPedido, deletePedido, getProductos, deleteProducto } from '../data/database';
 import GestionCategorias from './GestionCategorias';
 
+
 const PanelVendedor = () => {
   const [vistaActiva, setVistaActiva] = useState('pedidos');
   const [pedidos, setPedidos] = useState([]);

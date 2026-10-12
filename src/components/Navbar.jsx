@@ -78,7 +78,7 @@ const Navbar = ({ contadorCarrito, usuarioActivo, onLogout }) => {
             <li className="nav-item d-lg-none mt-2">
               {usuarioActivo ? (
                 <div className="d-flex flex-column gap-2">
-                  {/* NUEVO BOTÓN PERFIL MOBILE */}
+                  {/* BOTÓN PERFIL MOBILE */}
                   <Link to="/perfil" className="btn btn-outline-info btn-sm w-100 text-start">
                     <i className="bi bi-person-gear me-2"></i>Mi Perfil
                   </Link>
