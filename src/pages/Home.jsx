@@ -3,45 +3,46 @@ import { Link } from 'react-router-dom';
 
 const Home = () => {
   const [productosDestacados, setProductosDestacados] = useState([]);
+  const [categoriasHome, setCategoriasHome] = useState([]);
 
   useEffect(() => {
     const productos = JSON.parse(localStorage.getItem('react_productos')) || [];
     setProductosDestacados(productos.slice(0, 3));
   }, []);
 
+  const colores = [
+    'linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%)', // Azul
+    'linear-gradient(135deg, #ffc107 0%, #fd7e14 100%)', // Naranja
+    'linear-gradient(135deg, #198754 0%, #20c997 100%)', // Verde
+    'linear-gradient(135deg, #6f42c1 0%, #d63384 100%)'  // Morado
+  ];
+  const iconos = ['bi-hammer', 'bi-bricks', 'bi-paint-bucket', 'bi-wrench'];
+
+  useEffect(() => {
+    const productos = JSON.parse(localStorage.getItem('react_productos')) || [];
+    setProductosDestacados(productos.slice(0, 3));
+
+    // Cargar categorías creadas por el admin
+    const categoriasGuardadas = JSON.parse(localStorage.getItem('react_categorias')) || [];
+    setCategoriasHome(categoriasGuardadas.slice(0, 2)); // Mostramos solo 2 en el Home
+  }, []);
+
+  const slugify = (texto) => {
+    return texto.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '-');
+  };
+
   return (
     <>
       {/* HERO BANNER */}
-      <section
-        className="text-white text-center py-3 py-md-5 mb-4 mb-md-5 rounded position-relative overflow-hidden"
-        style={{
-          background: 'linear-gradient(135deg, #D84315 0%, #212529 100%)',
-          minHeight: '320px',
-          display: 'flex',
-          alignItems: 'center',
-          overflow: 'hidden'
-        }}
-      >
+      <section className="text-white text-center py-3 py-md-5 mb-4 mb-md-5 rounded position-relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #D84315 0%, #212529 100%)', minHeight: '320px', display: 'flex', alignItems: 'center' }}>
         <i className="bi bi-tools position-absolute opacity-25 d-none d-md-block" style={{ fontSize: '15rem', top: '-2rem', left: '-2rem', pointerEvents: 'none' }}></i>
-        <i className="bi bi-hammer position-absolute opacity-25 d-none d-md-block" style={{ fontSize: '12rem', bottom: '-2rem', right: '-1rem', pointerEvents: 'none' }}></i>
-
         <div className="container-fluid position-relative py-3 py-md-4 px-3">
-          <span className="badge bg-warning text-dark mb-3 px-3 py-2 fs-6">
-            <i className="bi bi-star-fill me-1"></i>Ferretería N°1 de la Región
-          </span>
-          <h1 className="display-6 display-md-3 fw-bold mb-3">
-            <span className="text-warning">Ferretería Don Juan</span>
-          </h1>
-          <p className="lead mb-4 fs-6 fs-md-4">
-            Todo lo que necesitas para construir tus sueños, en un solo lugar
-          </p>
+          <span className="badge bg-warning text-dark mb-3 px-3 py-2 fs-6"><i className="bi bi-star-fill me-1"></i>Ferretería N°1 de la Región</span>
+          <h1 className="display-6 display-md-3 fw-bold mb-3"><span className="text-warning">Ferretería Don Juan</span></h1>
+          <p className="lead mb-4 fs-6 fs-md-4">Todo lo que necesitas para construir tus sueños, en un solo lugar</p>
           <div className="d-flex justify-content-center gap-2 gap-md-3 flex-wrap">
-            <Link to="/catalogo" className="btn btn-warning btn-lg fw-bold px-3">
-            <i className="bi bi-shop me-2"></i>Ver Catálogo
-            </Link>
-            <Link to="/ofertas" className="btn btn-outline-light btn-lg px-3">
-            <i className="bi bi-tag-fill me-2"></i>Ofertas
-            </Link>
+            <Link to="/catalogo" className="btn btn-warning btn-lg fw-bold px-3"><i className="bi bi-shop me-2"></i>Ver Catálogo</Link>
+            <Link to="/ofertas" className="btn btn-outline-light btn-lg px-3"><i className="bi bi-tag-fill me-2"></i>Ofertas</Link>
           </div>
         </div>
       </section>
@@ -49,33 +50,34 @@ const Home = () => {
       {/* CATEGORÍAS */}
       <section className="mb-4 mb-md-5">
         <h2 className="text-center fw-bold mb-4 fs-3 fs-md-2">
-          <i className="bi bi-grid-3x3-gap-fill me-2 text-warning"></i>
-          Nuestras Categorías
+          <i className="bi bi-grid-3x3-gap-fill me-2 text-warning"></i>Nuestras Categorías
         </h2>
         <div className="row g-3 g-md-4 justify-content-center">
-          <div className="col-12 col-sm-10 col-md-5">
-            <Link to="/categoria/herramientas-manuales" className="text-decoration-none">
-              <div className="card border-0 shadow-lg h-100 text-center category-card" style={{ transition: 'transform 0.3s' }}>
-                <div className="card-body py-4 py-md-5" style={{ background: 'linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%)', color: 'white', borderRadius: '0.5rem' }}>
-                  <i className="bi bi-hammer" style={{ fontSize: '3rem' }}></i>
-                  <h3 className="fw-bold mt-3 mb-2 fs-4 fs-md-3">Herramientas Manuales</h3>
-                  <p className="mb-0 small small-md">Llaves, destornilladores, niveles y más.</p>
-                </div>
-              </div>
-            </Link>
-          </div>
+          {categoriasHome.map((cat, index) => {
+            const slug = slugify(cat.nombre);
+            const color = colores[index % colores.length];
+            const icono = iconos[index % iconos.length];
 
-          <div className="col-12 col-sm-10 col-md-5">
-            <Link to="/categoria/materiales-de-construccion" className="text-decoration-none">
-              <div className="card border-0 shadow-lg h-100 text-center category-card" style={{ transition: 'transform 0.3s' }}>
-                <div className="card-body py-4 py-md-5" style={{ background: 'linear-gradient(135deg, #ffc107 0%, #fd7e14 100%)', color: 'white', borderRadius: '0.5rem' }}>
-                  <i className="bi bi-bricks" style={{ fontSize: '3rem' }}></i>
-                  <h3 className="fw-bold mt-3 mb-2 fs-4 fs-md-3">Materiales de Construcción</h3>
-                  <p className="mb-0 small small-md">Cemento, arena, ladrillos y más.</p>
-                </div>
+            return (
+              <div className="col-12 col-sm-10 col-md-5" key={cat.id}>
+                <Link to={`/categoria/${slug}`} className="text-decoration-none">
+                  <div className="card border-0 shadow-lg h-100 text-center category-card" style={{ transition: 'transform 0.3s' }}>
+                    <div className="card-body py-4 py-md-5" style={{ background: color, color: 'white', borderRadius: '0.5rem' }}>
+                      <i className={`bi ${icono}`} style={{ fontSize: '3rem' }}></i>
+                      <h3 className="fw-bold mt-3 mb-2 fs-4 fs-md-3">{cat.nombre}</h3>
+                      <p className="mb-0 small small-md">{cat.descripcion}</p>
+                    </div>
+                  </div>
+                </Link>
               </div>
-            </Link>
-          </div>
+            );
+          })}
+        </div>
+
+        <div className="text-center mt-4">
+          <Link to="/categorias" className="btn btn-outline-primary px-4 fw-bold">
+            Ver todas las categorías <i className="bi bi-arrow-right ms-1"></i>
+          </Link>
         </div>
       </section>
 

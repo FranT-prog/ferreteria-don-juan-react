@@ -17,6 +17,7 @@ import Blog from './pages/Blog';
 import Login from './pages/Login';
 import Registro from './pages/Registro';
 import PagoRechazado from './pages/PagoRechazado';
+import ReportesProductos from './pages/ReportesProductos';
 
 import PanelAdmin from './pages/PanelAdmin';
 import FormularioProducto from './pages/FormularioProducto';
@@ -71,6 +72,7 @@ function App() {
           <Route path="/categoria/:categoria" element={<CategoriaDetalle />} />
           <Route path="/ofertas" element={<Ofertas />} />
           <Route path="/pago-rechazado" element={<PagoRechazado />} />
+          <Route path="/admin/reportes-productos" element={<ReportesProductos />} />
 
           {/* Rutas de Administración */}
           <Route path="/admin" element={

@@ -29,3 +29,10 @@ code {
   width: 100%;
   max-width: 100vw;
 }
+
+.action-card {
+  transition: transform 0.2s ease-in-out;
+}
+.action-card:hover {
+  transform: translateY(-5px);
+}
