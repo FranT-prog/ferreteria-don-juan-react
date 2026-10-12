@@ -16,7 +16,7 @@ import GestionUsuarios from './GestionUsuarios';
 import PerfilAdmin from './PerfilAdmin';
 
 const PanelAdmin = () => {
-  const [vistaActiva, setVistaActiva] = useState('dashboard'); // Cambiado a dashboard
+  const [vistaActiva, setVistaActiva] = useState('dashboard'); 
   const [usuarios, setUsuarios] = useState([]);
   const [productos, setProductos] = useState([]);
   const [pedidos, setPedidos] = useState([]);
@@ -82,7 +82,7 @@ const PanelAdmin = () => {
       {/* ========================================== */}
       <div className="d-flex flex-column flex-shrink-0 bg-white border-end shadow-sm" style={{ width: '250px' }}>
         <div className="bg-dark text-white p-3 border-bottom border-dark">
-          <h5 className="mb-0 fw-bold">Company name</h5>
+          <h5 className="mb-0 fw-bold">Ferretería Don Juan</h5>
         </div>
         
         <ul className="nav nav-pills flex-column mb-auto p-3 gap-1">

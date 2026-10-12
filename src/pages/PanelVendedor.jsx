@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getPedidos, updateEstadoPedido, deletePedido, getProductos, deleteProducto } from '../data/database';
+import GestionCategorias from './GestionCategorias';
 
 const PanelVendedor = () => {
   const [vistaActiva, setVistaActiva] = useState('pedidos');
@@ -102,6 +103,15 @@ const PanelVendedor = () => {
             onClick={() => setVistaActiva('productos')}
           >
             <i className="bi bi-boxes me-2"></i>Gestión de Productos ({productos.length})
+          </button>
+        </li>
+        {/* NUEVA PESTAÑA: Categorías */}
+        <li className="nav-item">
+          <button
+            className={`nav-link fw-bold fs-5 py-3 ${vistaActiva === 'categorias' ? 'active text-success border-success border-bottom-0' : 'text-secondary'}`}
+            onClick={() => setVistaActiva('categorias')}
+          >
+            <i className="bi bi-tags-fill me-2"></i>Gestión de Categorías
           </button>
         </li>
       </ul>
@@ -213,6 +223,7 @@ const PanelVendedor = () => {
         </div>
       )}
 
+
       {/* PESTAÑA PRODUCTOS */}
       {vistaActiva === 'productos' && (
         <div className="card shadow-sm border-0">
@@ -312,6 +323,11 @@ const PanelVendedor = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* PESTAÑA CATEGORÍAS */}
+      {vistaActiva === 'categorias' && (
+        <GestionCategorias />
       )}
     </div>
   );
