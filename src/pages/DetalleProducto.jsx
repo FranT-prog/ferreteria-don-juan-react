@@ -38,7 +38,7 @@ const DetalleProducto = ({ onActualizarCarrito }) => {
 
     localStorage.setItem('react_carrito', JSON.stringify(carritoActual));
     if (onActualizarCarrito) onActualizarCarrito();
-};
+  };
 
   if (!producto) {
     return <div className="text-center mt-5">Cargando...</div>;
@@ -47,7 +47,7 @@ const DetalleProducto = ({ onActualizarCarrito }) => {
   return (
     <div>
       <div className="mb-3">
-        <Link to="/" className="btn btn-outline-secondary btn-sm">
+        <Link to="/catalogo" className="btn btn-outline-secondary btn-sm">
           <i className="bi bi-arrow-left"></i> Volver al Catálogo
         </Link>
       </div>

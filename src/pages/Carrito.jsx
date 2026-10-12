@@ -140,7 +140,7 @@ const Carrito = ({ onActualizarCarrito }) => {
         <div className="alert alert-info shadow-sm py-4 text-center">
           <h5>Tu carrito está vacío</h5>
           <p className="mb-3 text-muted">Aún no has agregado productos a tu orden.</p>
-          <Link to="/" className="btn btn-primary fw-bold">
+          <Link to="/catalogo" className="btn btn-primary fw-bold">
             <i className="bi bi-arrow-left me-2"></i>Volver al Catálogo
           </Link>
         </div>

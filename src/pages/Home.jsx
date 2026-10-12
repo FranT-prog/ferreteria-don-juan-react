@@ -5,11 +5,6 @@ const Home = () => {
   const [productosDestacados, setProductosDestacados] = useState([]);
   const [categoriasHome, setCategoriasHome] = useState([]);
 
-  useEffect(() => {
-    const productos = JSON.parse(localStorage.getItem('react_productos')) || [];
-    setProductosDestacados(productos.slice(0, 3));
-  }, []);
-
   const colores = [
     'linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%)', // Azul
     'linear-gradient(135deg, #ffc107 0%, #fd7e14 100%)', // Naranja
@@ -19,12 +14,19 @@ const Home = () => {
   const iconos = ['bi-hammer', 'bi-bricks', 'bi-paint-bucket', 'bi-wrench'];
 
   useEffect(() => {
+    // 1. Cargar productos destacados
     const productos = JSON.parse(localStorage.getItem('react_productos')) || [];
     setProductosDestacados(productos.slice(0, 3));
 
-    // Cargar categorías creadas por el admin
-    const categoriasGuardadas = JSON.parse(localStorage.getItem('react_categorias')) || [];
-    setCategoriasHome(categoriasGuardadas.slice(0, 2)); // Mostramos solo 2 en el Home
+    // 2. Definir categorías actualizadas
+    const categoriasActualizadas = [
+      { id: 'cat-1', nombre: 'Herramientas Manuales', descripcion: 'Martillos, destornilladores, alicates.' },
+      { id: 'cat-2', nombre: 'Materiales de Construcción', descripcion: 'Cemento, arena, ladrillos y materiales de obra.' }
+    ];
+
+    // 3. Forzar actualización en localStorage
+    localStorage.setItem('react_categorias', JSON.stringify(categoriasActualizadas));
+    setCategoriasHome(categoriasActualizadas);
   }, []);
 
   const slugify = (texto) => {
