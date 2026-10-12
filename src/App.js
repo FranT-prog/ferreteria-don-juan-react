@@ -55,52 +55,50 @@ function App() {
         usuarioActivo={usuarioActivo} 
         onLogout={handleLogout} 
       />
-      <div className="container my-4">
-        <Routes>
-          {/* Rutas Públicas */}
-          <Route path="/" element={<Home />} />
-          <Route path="/catalogo" element={<Catalogo onActualizarCarrito={actualizarContador} />} />
-          <Route path="/contacto" element={<Contacto />} />
-          <Route path="/nosotros" element={<Nosotros />} />
-          <Route path="/blog" element={<Blog />} />
-          <Route path="/carrito" element={<Carrito onActualizarCarrito={actualizarContador} />} />
-          <Route path="/pago-exitoso" element={<PagoExitoso />} />
-          <Route path="/detalle/:id" element={<DetalleProducto onActualizarCarrito={actualizarContador} />} />
-          <Route path="/login" element={<Login onLoginSuccess={setUsuarioActivo} />} />
-          <Route path="/registro" element={<Registro />} />
-          <Route path="/categorias" element={<Categorias />} />
-          <Route path="/categoria/:categoria" element={<CategoriaDetalle />} />
-          <Route path="/ofertas" element={<Ofertas />} />
-          <Route path="/pago-rechazado" element={<PagoRechazado />} />
-          <Route path="/admin/reportes-productos" element={<ReportesProductos />} />
+      <Routes>
+        {/* Rutas Públicas (con container) */}
+        <Route path="/" element={<div className="container my-4"><Home /></div>} />
+        <Route path="/catalogo" element={<div className="container my-4"><Catalogo onActualizarCarrito={actualizarContador} /></div>} />
+        <Route path="/contacto" element={<div className="container my-4"><Contacto /></div>} />
+        <Route path="/nosotros" element={<div className="container my-4"><Nosotros /></div>} />
+        <Route path="/blog" element={<div className="container my-4"><Blog /></div>} />
+        <Route path="/carrito" element={<div className="container my-4"><Carrito onActualizarCarrito={actualizarContador} /></div>} />
+        <Route path="/pago-exitoso" element={<div className="container my-4"><PagoExitoso /></div>} />
+        <Route path="/detalle/:id" element={<div className="container my-4"><DetalleProducto onActualizarCarrito={actualizarContador} /></div>} />
+        <Route path="/login" element={<div className="container my-4"><Login onLoginSuccess={setUsuarioActivo} /></div>} />
+        <Route path="/registro" element={<div className="container my-4"><Registro /></div>} />
+        <Route path="/categorias" element={<div className="container my-4"><Categorias /></div>} />
+        <Route path="/categoria/:categoria" element={<div className="container my-4"><CategoriaDetalle /></div>} />
+        <Route path="/ofertas" element={<div className="container my-4"><Ofertas /></div>} />
+        <Route path="/pago-rechazado" element={<div className="container my-4"><PagoRechazado /></div>} />
+        <Route path="/admin/reportes-productos" element={<div className="container my-4"><ReportesProductos /></div>} />
 
-          {/* Rutas de Administración */}
-          <Route path="/admin" element={
-            usuarioActivo?.rol === 'Administrador' ? <PanelAdmin /> : <Navigate to="/login" />
-          } />
-          <Route path="/admin/nuevo" element={
-            usuarioActivo?.rol === 'Administrador' ? <FormularioProducto /> : <Navigate to="/login" />
-          } />
-          <Route path="/admin/editar/:id" element={
-            usuarioActivo?.rol === 'Administrador' ? <EditarProducto /> : <Navigate to="/login" />
-          } />
-          <Route path="/admin/usuario/nuevo" element={
-            usuarioActivo?.rol === 'Administrador' ? <FormularioUsuario /> : <Navigate to="/login" />
-          } />
+        {/* Rutas de Administración (SIN container, ocupan toda la pantalla) */}
+        <Route path="/admin" element={
+          usuarioActivo?.rol === 'Administrador' ? <PanelAdmin /> : <Navigate to="/login" />
+        } />
+        <Route path="/admin/nuevo" element={
+          usuarioActivo?.rol === 'Administrador' ? <div className="container my-4"><FormularioProducto /></div> : <Navigate to="/login" />
+        } />
+        <Route path="/admin/editar/:id" element={
+          usuarioActivo?.rol === 'Administrador' ? <div className="container my-4"><EditarProducto /></div> : <Navigate to="/login" />
+        } />
+        <Route path="/admin/usuario/nuevo" element={
+          usuarioActivo?.rol === 'Administrador' ? <div className="container my-4"><FormularioUsuario /></div> : <Navigate to="/login" />
+        } />
 
-          {/* Rutas del Vendedor */}
-          <Route path="/vendedor" element={
-            (usuarioActivo?.rol === 'Vendedor' || usuarioActivo?.rol === 'Administrador') 
-              ? <PanelVendedor /> 
-              : <Navigate to="/login" />
-          } />
-          <Route path="/vendedor/pedido/:id" element={
-            (usuarioActivo?.rol === 'Vendedor' || usuarioActivo?.rol === 'Administrador') 
-              ? <DetallePedido /> 
-              : <Navigate to="/login" />
-          } />
-        </Routes>
-      </div>
+        {/* Rutas del Vendedor */}
+        <Route path="/vendedor" element={
+          (usuarioActivo?.rol === 'Vendedor' || usuarioActivo?.rol === 'Administrador') 
+            ? <div className="container my-4"><PanelVendedor /></div> 
+            : <Navigate to="/login" />
+        } />
+        <Route path="/vendedor/pedido/:id" element={
+          (usuarioActivo?.rol === 'Vendedor' || usuarioActivo?.rol === 'Administrador') 
+            ? <div className="container my-4"><DetallePedido /></div> 
+            : <Navigate to="/login" />
+        } />
+      </Routes>
       <Footer /> 
     </BrowserRouter>
   );

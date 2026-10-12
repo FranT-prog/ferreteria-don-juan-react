@@ -12,11 +12,11 @@ const Navbar = ({ contadorCarrito, usuarioActivo, onLogout }) => {
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm sticky-top">
       <div className="container">
-        <Link className="navbar-brand fw-bold text-warning" to="/">
-          <i className="bi bi-tools me-2"></i>
-          <span className="d-none d-sm-inline">Ferretería Don Juan</span>
-          <span className="d-inline d-sm-none">Don Juan</span>
-        </Link>
+        <Link className="navbar-brand fw-bold text-warning d-flex align-items-center" to="/">
+        <i className="bi bi-tools me-2"></i>
+        <span className="d-none d-md-inline">Ferretería Don Juan</span>
+        <span className="d-inline d-md-none">Don Juan</span>
+      </Link>
 
         {/* Carrito SIEMPRE visible */}
         <div className="d-flex align-items-center gap-2 order-lg-2 ms-auto me-2">
