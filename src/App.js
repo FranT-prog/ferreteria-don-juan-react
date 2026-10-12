@@ -18,6 +18,7 @@ import Login from './pages/Login';
 import Registro from './pages/Registro';
 import PagoRechazado from './pages/PagoRechazado';
 import ReportesProductos from './pages/ReportesProductos';
+import PerfilUsuario from './pages/PerfilUsuario';
 
 import PanelAdmin from './pages/PanelAdmin';
 import FormularioProducto from './pages/FormularioProducto';
@@ -72,6 +73,7 @@ function App() {
         <Route path="/ofertas" element={<div className="container my-4"><Ofertas /></div>} />
         <Route path="/pago-rechazado" element={<div className="container my-4"><PagoRechazado /></div>} />
         <Route path="/admin/reportes-productos" element={<div className="container my-4"><ReportesProductos /></div>} />
+        <Route path="/perfil" element={<PerfilUsuario usuarioActivo={usuarioActivo} />} />
 
         {/* Rutas de Administración (SIN container, ocupan toda la pantalla) */}
         <Route path="/admin" element={

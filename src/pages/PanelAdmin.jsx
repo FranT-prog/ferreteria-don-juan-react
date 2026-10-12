@@ -11,7 +11,7 @@ import {
 import ReportesProductos from './ReportesProductos'; 
 import GestionCategorias from './GestionCategorias';
 import GestionUsuarios from './GestionUsuarios';
-import PerfilAdmin from './PerfilAdmin';
+import PerfilUsuario from './PerfilUsuario';
 
 const PanelAdmin = () => {
   const [vistaActiva, setVistaActiva] = useState('dashboard');
@@ -451,7 +451,7 @@ const PanelAdmin = () => {
         {vistaActiva === 'categorias' && <GestionCategorias />}
         {vistaActiva === 'reportesProductos' && <ReportesProductos />}
         {vistaActiva === 'usuarios' && <GestionUsuarios />}
-        {vistaActiva === 'perfil' && <PerfilAdmin />}
+        {vistaActiva === 'perfil' && <PerfilUsuario />}
         
       </div>
     </div>

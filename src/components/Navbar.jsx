@@ -74,12 +74,18 @@ const Navbar = ({ contadorCarrito, usuarioActivo, onLogout }) => {
               </li>
             )}
 
-            {/* Login/Registro para mobile (dentro del menú) */}
+            {/* Login/Registro y PERFIL para mobile (dentro del menú) */}
             <li className="nav-item d-lg-none mt-2">
               {usuarioActivo ? (
-                <button className="btn btn-light btn-sm w-100" onClick={handleLogout}>
-                  <i className="bi bi-person-circle me-1"></i>Cerrar Sesión ({usuarioActivo.nombre})
-                </button>
+                <div className="d-flex flex-column gap-2">
+                  {/* NUEVO BOTÓN PERFIL MOBILE */}
+                  <Link to="/perfil" className="btn btn-outline-info btn-sm w-100 text-start">
+                    <i className="bi bi-person-gear me-2"></i>Mi Perfil
+                  </Link>
+                  <button className="btn btn-light btn-sm w-100 text-start" onClick={handleLogout}>
+                    <i className="bi bi-box-arrow-right me-2"></i>Cerrar Sesión ({usuarioActivo.nombre})
+                  </button>
+                </div>
               ) : (
                 <div className="d-flex gap-2">
                   <Link to="/login" className="btn btn-outline-light btn-sm flex-grow-1">Login</Link>
@@ -89,7 +95,7 @@ const Navbar = ({ contadorCarrito, usuarioActivo, onLogout }) => {
             </li>
           </ul>
 
-          {/* Login/Registro para desktop */}
+          {/* Login/Registro y PERFIL para desktop */}
           <div className="d-none d-lg-flex align-items-center gap-2">
             {usuarioActivo ? (
               <div className="dropdown">
@@ -98,6 +104,13 @@ const Navbar = ({ contadorCarrito, usuarioActivo, onLogout }) => {
                 </button>
                 <ul className="dropdown-menu dropdown-menu-end">
                   <li><span className="dropdown-item-text text-muted small">Rol: {usuarioActivo.rol}</span></li>
+                  <li><hr className="dropdown-divider" /></li>
+                  {/* NUEVO ENLACE PERFIL DESKTOP */}
+                  <li>
+                    <Link to="/perfil" className="dropdown-item">
+                      <i className="bi bi-person-gear me-2"></i> Mi Perfil
+                    </Link>
+                  </li>
                   <li><hr className="dropdown-divider" /></li>
                   <li><button className="dropdown-item text-danger fw-bold" onClick={handleLogout}>Cerrar Sesión</button></li>
                 </ul>
