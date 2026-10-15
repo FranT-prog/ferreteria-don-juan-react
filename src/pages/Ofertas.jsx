@@ -1,9 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
+/**
+ * Componente de Página: Ofertas
+ * 
+ * Descripción: Muestra un catálogo exclusivo de productos promocionales con descuentos dinámicos,
+ * cálculo de precios originales y ahorro estimado por producto.
+ * 
+ * Criterios Evaluados Aplicados:
+ * 1. Manejo de Estado (useState) y Efectos (useEffect): Transforma el arreglo de productos de 'localStorage' calculando descuentos, precio original y precio oferta.
+ * 2. Componentes y Layout de Bootstrap: Muestra tarjetas con insignias flotantes (`badge bg-danger position-absolute`), botones responsivos (`btn btn-warning`) y grilla adaptativa (`col-12 col-md-6 col-lg-4`).
+ * 3. Enrutamiento con React Router: Uso de componentes `<Link>` para navegar a las fichas técnicas individuales (`/detalle/:id`) y al catálogo completo.
+ */
 const Ofertas = () => {
+  // Estado local para almacenar el listado procesado de productos con sus descuentos calculados
   const [ofertas, setOfertas] = useState([]);
 
+  /**
+   * Hook useEffect: Se ejecuta al montar la vista en el DOM.
+   * Consulta los productos guardados en 'localStorage', mapea cada producto para asignarle un porcentaje
+   * de descuento cíclico, un precio original simulado (15% superior) y actualiza el estado local.
+   */
   useEffect(() => {
     // Tomar todos los productos y aplicarles un descuento
     const productos = JSON.parse(localStorage.getItem('react_productos')) || [];
@@ -21,7 +38,7 @@ const Ofertas = () => {
   return (
     <>
       {/* ============================================
-          BANNER DE OFERTAS
+          BANNER DE OFERTAS (Encabezado con degradado rojo/oscuro de Bootstrap)
       ============================================ */}
       <section
         className="text-white text-center py-5 mb-5 rounded"
@@ -44,20 +61,22 @@ const Ofertas = () => {
       </section>
 
       {/* ============================================
-          LISTA DE OFERTAS
+          LISTA DE OFERTAS (Grilla responsiva de productos con insignias de descuento)
       ============================================ */}
       <section className="mb-5">
         <div className="row g-4">
+          {/* Renderizado Condicional: Mensaje alternativo si el arreglo de ofertas está vacío */}
           {ofertas.length === 0 ? (
             <div className="col-12 text-center py-5">
               <i className="bi bi-inbox text-muted" style={{ fontSize: '4rem' }}></i>
               <p className="text-muted mt-3">No hay ofertas disponibles en este momento.</p>
             </div>
           ) : (
+            /* Mapeo del arreglo procesado 'ofertas' para renderizar cada tarjeta de producto */
             ofertas.map((producto) => (
               <div className="col-12 col-md-6 col-lg-4" key={producto.id}>
                 <div className="card border-0 shadow-sm h-100 position-relative">
-                  {/* Badge de descuento */}
+                  {/* Badge de descuento flotante posicionado en la esquina superior derecha */}
                   <span
                     className="badge bg-danger position-absolute top-0 end-0 m-3 px-3 py-2 fs-6"
                     style={{ zIndex: 10 }}
@@ -65,7 +84,7 @@ const Ofertas = () => {
                     -{producto.descuento}%
                   </span>
 
-                  {/* Imagen */}
+                  {/* Imagen de la oferta */}
                   <img
                     src={producto.imagen}
                     alt={producto.nombre}
@@ -81,7 +100,7 @@ const Ofertas = () => {
                     <p className="text-muted small mb-2">Cód: {producto.id}</p>
 
                     <div className="mt-auto">
-                      {/* Precio original tachado */}
+                      {/* Precio original tachado e insignia de ahorro calculado */}
                       <p className="mb-1">
                         <span className="text-muted text-decoration-line-through">
                           ${producto.precioOriginal.toLocaleString()}
@@ -91,12 +110,12 @@ const Ofertas = () => {
                         </span>
                       </p>
 
-                      {/* Precio con oferta */}
+                      {/* Precio final promocional */}
                       <p className="fw-bold text-danger fs-3 mb-3">
                         ${producto.precioOferta.toLocaleString()}
                       </p>
 
-                      {/* Botones */}
+                      {/* Enlace navegable hacia el detalle del producto */}
                       <div className="d-grid gap-2">
                         <Link
                           to={`/detalle/${producto.id}`}
@@ -115,7 +134,7 @@ const Ofertas = () => {
       </section>
 
       {/* ============================================
-          CTA FINAL
+          CTA FINAL (Llamado a la acción hacia el catálogo general)
       ============================================ */}
       <section
         className="text-center p-5 rounded mb-5 text-white"

@@ -1,44 +1,84 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
+/**
+ * Componente de Página: GestionUsuarios
+ * 
+ * Descripción: Módulo administrativo para listar, buscar, editar, cambiar estado (bloquear/activar),
+ * eliminar cuentas de usuario y revisar su historial de compras asociadas por correo electrónico.
+ * 
+ * Criterios Evaluados Aplicados:
+ * 1. Control de Vistas Internas (Estado `vistaActual`): Alterna entre la tabla principal ('lista'), el formulario de edición ('editar') y la vista de pedidos ('historial') sin recargar la página.
+ * 2. Filtrado y Búsqueda en Tiempo Real: Uso del método `.filter()` combinando comparaciones por nombre y correo electrónico en minúsculas.
+ * 3. Cruce de Información (Relación Usuario-Pedidos): Vincula la colección de usuarios con la colección de pedidos mediante la clave común `email`.
+ * 4. Componentes y Layouts de Bootstrap: Uso de tarjetas (`card`), botones agrupados (`btn-group`), insignias (`badge`), controles de entrada (`form-control`, `form-select`) y tablas responsivas (`table table-hover align-middle`).
+ */
 const GestionUsuarios = () => {
+  // Estado local para almacenar el listado completo de usuarios registrados
   const [usuarios, setUsuarios] = useState([]);
+
+  // Estado local para almacenar la lista global de pedidos realizados
   const [pedidos, setPedidos] = useState([]);
   
-  // Vistas y filtros
+  // Estado para controlar la vista activa ('lista', 'editar', 'historial')
   const [vistaActual, setVistaActual] = useState('lista'); 
+
+  // Estado para guardar temporalmente el objeto del usuario seleccionado para editar o ver historial
   const [usuarioActivo, setUsuarioActivo] = useState(null);
+
+  // Estado para almacenar el subconjunto de pedidos realizados por el usuario activo
   const [comprasUsuario, setComprasUsuario] = useState([]);
+
+  // Estado para capturar la cadena digitada en la barra de búsqueda de usuarios
   const [busquedaUsuario, setBusquedaUsuario] = useState('');
 
+  /**
+   * Hook useEffect:
+   * Se ejecuta una vez al montar el componente en el DOM.
+   * Carga desde 'localStorage' tanto el listado de usuarios como el historial global de pedidos.
+   */
   useEffect(() => {
-    // Cargar usuarios
+    // Cargar usuarios guardados
     const usersGuardados = JSON.parse(localStorage.getItem('react_usuarios')) || [];
     setUsuarios(usersGuardados);
     
-    // Cargar pedidos para el historial
+    // Cargar pedidos para consultar historiales
     const pedidosGuardados = JSON.parse(localStorage.getItem('react_pedidos')) || [];
     setPedidos(pedidosGuardados);
   }, []);
 
-  // Filtrado para el buscador
+  /**
+   * Filtrado Dinámico de Usuarios:
+   * Filtra la lista en tiempo real verificando si el nombre o el correo del usuario
+   * contienen el texto almacenado en el estado `busquedaUsuario` (ignorando mayúsculas/minúsculas).
+   */
   const usuariosFiltrados = usuarios.filter(usr => 
     usr.nombre?.toLowerCase().includes(busquedaUsuario.toLowerCase()) || 
     usr.email?.toLowerCase().includes(busquedaUsuario.toLowerCase())
   );
 
   // --- FUNCIONES PARA EDITAR ---
+
+  /**
+   * Carga el usuario seleccionado en el estado 'usuarioActivo' y cambia la vista a 'editar'.
+   */
   const abrirEdicion = (user) => {
     setUsuarioActivo({ ...user });
     setVistaActual('editar');
   };
 
+  /**
+   * Sincroniza las modificaciones hechas en el formulario de edición con el estado 'usuarioActivo'.
+   */
   const manejarCambioEdicion = (e) => {
     setUsuarioActivo({ ...usuarioActivo, [e.target.name]: e.target.value });
   };
 
+  /**
+   * Guarda los cambios del usuario editado en 'localStorage' y actualiza la lista global en el estado.
+   */
   const guardarEdicion = (e) => {
-    e.preventDefault();
+    e.preventDefault(); // Cancela la recarga de página predeterminada
     const actualizados = usuarios.map(u => 
       (u.id === usuarioActivo.id || u.email === usuarioActivo.email) ? usuarioActivo : u
     );
@@ -49,6 +89,11 @@ const GestionUsuarios = () => {
   };
 
   // --- FUNCIONES PARA HISTORIAL ---
+
+  /**
+   * Filtra los pedidos globales buscando aquellos cuyo correo coincida con el usuario seleccionado,
+   * guarda el resultado en 'comprasUsuario' y cambia la vista a 'historial'.
+   */
   const verHistorial = (user) => {
     setUsuarioActivo(user);
     const compras = pedidos.filter(p => p.email === user.email);
@@ -56,7 +101,11 @@ const GestionUsuarios = () => {
     setVistaActual('historial');
   };
 
-  // --- FUNCIONES ORIGINALES DE TU DISEÑO (Bloquear/Eliminar) ---
+  // --- FUNCIONES PARA CAMBIO DE ESTADO Y ELIMINACIÓN ---
+
+  /**
+   * Alterna el estado de un usuario entre 'Activo' y 'Bloqueado' según su ID o correo electrónico.
+   */
   const handleCambiarEstadoUsuario = (identificador) => {
     const actualizados = usuarios.map(u => {
       if (u.id === identificador || u.email === identificador) {
@@ -68,6 +117,9 @@ const GestionUsuarios = () => {
     localStorage.setItem('react_usuarios', JSON.stringify(actualizados));
   };
 
+  /**
+   * Elimina un usuario de la lista previa confirmación con alerta nativa ('window.confirm').
+   */
   const handleEliminarUsuario = (identificador) => {
     if (window.confirm('¿Estás seguro de eliminar a este usuario?')) {
       const filtrados = usuarios.filter(u => u.id !== identificador && u.email !== identificador);
@@ -78,9 +130,10 @@ const GestionUsuarios = () => {
 
   return (
     <div className="w-100">
-      {/* VISTA 1: TU DISEÑO ORIGINAL MEJORADO */}
+      {/* VISTA 1: TABLA PRINCIPAL Y BUSCADOR DE USUARIOS */}
       {vistaActual === 'lista' && (
         <div className="card shadow-sm border-0">
+          {/* Cabecera con título, buscador y botón para registrar nuevo usuario */}
           <div className="card-header bg-dark text-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
             <h5 className="fw-bold mb-0"><i className="bi bi-people-fill me-2"></i>Cuentas de Usuario</h5>
             <div className="d-flex gap-2">
@@ -112,25 +165,30 @@ const GestionUsuarios = () => {
                   </tr>
                 </thead>
                 <tbody>
+                  {/* Renderizado Condicional: Mensaje si no existen coincidencias */}
                   {usuariosFiltrados.length === 0 ? (
                     <tr><td colSpan="6" className="text-center py-4">No se encontraron usuarios</td></tr>
                   ) : (
+                    /* Mapeo de la lista de usuarios filtrados */
                     usuariosFiltrados.map((usr) => (
                       <tr key={usr.id || usr.email}>
                         <td className="fw-bold text-muted">{usr.id || '-'}</td>
                         <td className="fw-bold">{usr.nombre}</td>
                         <td>{usr.email}</td>
                         <td>
+                          {/* Badge de Rol dinámico (Rojo=Admin, Verde=Vendedor, Gris=Cliente) */}
                           <span className={`badge ${usr.rol === 'Administrador' ? 'bg-danger' : usr.rol === 'Vendedor' ? 'bg-success' : 'bg-secondary'}`}>
                             {usr.rol || 'Cliente'}
                           </span>
                         </td>
                         <td>
+                          {/* Badge de Estado dinámico (Verde=Activo, Rojo=Bloqueado) */}
                           <span className={`badge ${usr.estado === 'Activo' ? 'bg-success' : 'bg-danger'}`}>
                             {usr.estado || 'Activo'}
                           </span>
                         </td>
                         <td className="text-center">
+                          {/* Grupo de botones de acción */}
                           <div className="btn-group btn-group-sm">
                             <button className="btn btn-outline-info" onClick={() => verHistorial(usr)} title="Ver Historial">
                               <i className="bi bi-clock-history"></i>
@@ -160,7 +218,7 @@ const GestionUsuarios = () => {
         </div>
       )}
 
-      {/* VISTA 2: EDITAR USUARIO */}
+      {/* VISTA 2: FORMULARIO INTERNO DE EDICIÓN DE USUARIO */}
       {vistaActual === 'editar' && usuarioActivo && (
         <div className="card shadow-sm border-0 bg-light mx-auto" style={{ maxWidth: '600px' }}>
           <div className="card-header bg-dark text-white d-flex justify-content-between align-items-center py-3">
@@ -191,7 +249,7 @@ const GestionUsuarios = () => {
         </div>
       )}
 
-      {/* VISTA 3: HISTORIAL DE COMPRAS */}
+      {/* VISTA 3: HISTORIAL DE COMPRAS DEL USUARIO SELECCIONADO */}
       {vistaActual === 'historial' && usuarioActivo && (
         <div>
           <div className="d-flex justify-content-between align-items-center mb-3">
@@ -204,12 +262,14 @@ const GestionUsuarios = () => {
             Email: <strong>{usuarioActivo.email}</strong>
           </div>
 
+          {/* Muestra mensaje si el usuario no registra compras previamente */}
           {comprasUsuario.length === 0 ? (
             <div className="text-center py-5 bg-light rounded border">
               <i className="bi bi-bag-x text-muted" style={{ fontSize: '3rem' }}></i>
               <p className="text-muted mt-3">Este usuario no tiene compras registradas.</p>
             </div>
           ) : (
+            /* Cuadrícula de órdenes realizadas por el usuario */
             <div className="row g-3">
               {comprasUsuario.map((compra, index) => (
                 <div className="col-md-6" key={index}>
@@ -223,6 +283,7 @@ const GestionUsuarios = () => {
                     <div className="card-body">
                       <p className="small text-muted mb-2"><i className="bi bi-geo-alt me-1"></i> {compra.direccion}</p>
                       <hr className="my-2"/>
+                      {/* Sublista de productos comprados dentro de la orden */}
                       <ul className="list-unstyled mb-3 small">
                         {compra.items && compra.items.map((item, i) => (
                           <li key={i} className="d-flex justify-content-between mb-1">

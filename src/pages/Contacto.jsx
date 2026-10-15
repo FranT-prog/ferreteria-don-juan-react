@@ -1,7 +1,18 @@
 import React, { useState } from 'react';
 
+/**
+ * Componente de Página: Contacto
+ * 
+ * Descripción: Formulario de contacto e información de atención al cliente de la ferretería.
+ * Permite capturar datos, validarlos dinámicamente, desplegar alertas de error/éxito y reiniciar los campos.
+ * 
+ * Criterios Evaluados Aplicados:
+ * 1. Manejo de Estado (useState): Captura el estado multi-campo del formulario (`formData`), mensajes de error (`errores`) y confirmación de envío (`enviado`).
+ * 2. Componentes y Controles de Formulario de Bootstrap: Uso de controles estilizados (`form-control`, `form-select`), tarjetas (`card`), alertas (`alert alert-danger`, `alert alert-success`) y grilla responsiva (`col-12 col-md-7` / `col-12 col-md-5`).
+ * 3. Manejo de Eventos y Manejo del DOM: Intercepción del evento `onSubmit` con `e.preventDefault()` y manejo unificado con `onChange`.
+ */
 const Contacto = () => {
-  // Estados del formulario
+  // Estado compuesto (objeto) para almacenar la información digitada en cada input del formulario
   const [formData, setFormData] = useState({
     nombre: '',
     email: '',
@@ -10,10 +21,17 @@ const Contacto = () => {
     mensaje: ''
   });
 
+  // Estado local para almacenar la lista de mensajes de error generados durante la validación
   const [errores, setErrores] = useState([]);
+
+  // Estado booleano para controlar la visibilidad de la alerta de éxito al enviar el mensaje
   const [enviado, setEnviado] = useState(false);
 
-  // Manejar cambios en los inputs
+  /**
+   * Manejador de Cambios Unificado (handleChange):
+   * Utiliza la sintaxis de propiedades computadas `[e.target.name]` para actualizar dinámicamente
+   * únicamente el campo correspondiente dentro del objeto `formData` sin perder el resto de los valores.
+   */
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -21,11 +39,16 @@ const Contacto = () => {
     });
   };
 
-  // Validar formulario
+  /**
+   * Función de Validación y Envío del Formulario:
+   * Evita la recarga por defecto con `e.preventDefault()`, evalúa que los campos no estén vacíos
+   * y que el correo contenga caracteres de estructura básica ('@' y '.'). Si es válido, simula el envío y resetea el formulario.
+   */
   const validarFormulario = (e) => {
-    e.preventDefault();
+    e.preventDefault(); // Detiene la recarga de página del evento Submit de HTML
     const nuevosErrores = [];
 
+    // Validaciones campo por campo
     if (!formData.nombre.trim()) {
       nuevosErrores.push('El nombre completo es obligatorio.');
     }
@@ -46,6 +69,7 @@ const Contacto = () => {
 
     setErrores(nuevosErrores);
 
+    // Si no existen errores de validación, activa la confirmación de éxito y resetea los campos tras un timeout
     if (nuevosErrores.length === 0) {
       setEnviado(true);
       setTimeout(() => {
@@ -61,7 +85,10 @@ const Contacto = () => {
     }
   };
 
-  // Limpiar formulario
+  /**
+   * Función para Limpiar el Formulario:
+   * Reinicia los estados a sus valores vacíos iniciales y borra las alertas activas.
+   */
   const limpiarFormulario = () => {
     setFormData({
       nombre: '',
@@ -77,7 +104,7 @@ const Contacto = () => {
   return (
     <>
       {/* ============================================
-          BANNER DE CONTACTO
+          BANNER DE CONTACTO (Estilizado con degradado CSS y Bootstrap)
       ============================================ */}
       <section
         className="text-white text-center py-5 mb-5 rounded"
@@ -96,9 +123,10 @@ const Contacto = () => {
         </div>
       </section>
 
+      {/* Grilla principal de 2 columnas (Formulario a la izquierda e Información a la derecha) */}
       <div className="row g-4 mb-5">
         {/* ============================================
-            COLUMNA IZQUIERDA: FORMULARIO
+            COLUMNA IZQUIERDA: FORMULARIO DE CONTACTO
         ============================================ */}
         <div className="col-12 col-md-7">
           <div className="card border-0 shadow-sm">
@@ -108,8 +136,9 @@ const Contacto = () => {
                 Envíanos un Mensaje
               </h3>
 
+              {/* Formulario vinculado a la función de validación 'validarFormulario' */}
               <form onSubmit={validarFormulario}>
-                {/* Nombre */}
+                {/* Campo Nombre Completo */}
                 <div className="mb-3">
                   <label className="form-label fw-bold">
                     <i className="bi bi-person-fill text-warning me-1"></i>
@@ -125,7 +154,7 @@ const Contacto = () => {
                   />
                 </div>
 
-                {/* Email */}
+                {/* Campo Correo Electrónico */}
                 <div className="mb-3">
                   <label className="form-label fw-bold">
                     <i className="bi bi-envelope-fill text-warning me-1"></i>
@@ -141,7 +170,7 @@ const Contacto = () => {
                   />
                 </div>
 
-                {/* Teléfono */}
+                {/* Campo Teléfono de Contacto */}
                 <div className="mb-3">
                   <label className="form-label fw-bold">
                     <i className="bi bi-telephone-fill text-warning me-1"></i>
@@ -157,7 +186,7 @@ const Contacto = () => {
                   />
                 </div>
 
-                {/* Asunto */}
+                {/* Campo Selección de Asunto / Motivo */}
                 <div className="mb-3">
                   <label className="form-label fw-bold">
                     <i className="bi bi-tag-fill text-warning me-1"></i>
@@ -177,7 +206,7 @@ const Contacto = () => {
                   </select>
                 </div>
 
-                {/* Mensaje */}
+                {/* Campo Área de Texto para el Mensaje */}
                 <div className="mb-3">
                   <label className="form-label fw-bold">
                     <i className="bi bi-chat-left-text-fill text-warning me-1"></i>
@@ -193,7 +222,7 @@ const Contacto = () => {
                   ></textarea>
                 </div>
 
-                {/* Mensajes de error */}
+                {/* Renderizado Condicional: Muestra la caja de alerta roja si existen errores de validación */}
                 {errores.length > 0 && (
                   <div className="alert alert-danger">
                     <strong>
@@ -208,7 +237,7 @@ const Contacto = () => {
                   </div>
                 )}
 
-                {/* Mensaje de éxito */}
+                {/* Renderizado Condicional: Alerta verde de confirmación tras envío exitoso */}
                 {enviado && (
                   <div className="alert alert-success">
                     <i className="bi bi-check-circle-fill me-2"></i>
@@ -216,7 +245,7 @@ const Contacto = () => {
                   </div>
                 )}
 
-                {/* Botones */}
+                {/* Botones de Acción (Enviar y Limpiar) */}
                 <div className="d-flex gap-3 flex-wrap">
                   <button type="submit" className="btn btn-warning fw-bold px-4">
                     <i className="bi bi-send-fill me-2"></i>Enviar Mensaje
@@ -235,10 +264,10 @@ const Contacto = () => {
         </div>
 
         {/* ============================================
-            COLUMNA DERECHA: INFORMACIÓN
+            COLUMNA DERECHA: INFORMACIÓN DE CONTACTO Y REDES
         ============================================ */}
         <div className="col-12 col-md-5">
-          {/* Info de contacto */}
+          {/* Tarjeta de Información Sucursal y Horarios */}
           <div className="card border-0 shadow-sm mb-4">
             <div className="card-body p-4">
               <h4 className="fw-bold mb-4">
@@ -286,7 +315,7 @@ const Contacto = () => {
             </div>
           </div>
 
-          {/* Redes sociales */}
+          {/* Tarjeta de Redes Sociales con gradiente personalizado */}
           <div className="card border-0 shadow-sm" style={{ background: 'linear-gradient(135deg, #D84315 0%, #fd7e14 100%)' }}>
             <div className="card-body p-4 text-white text-center">
               <h5 className="fw-bold mb-3">Síguenos</h5>

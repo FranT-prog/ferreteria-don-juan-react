@@ -1,41 +1,67 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
+/**
+ * Componente de Página: Home
+ * 
+ * Descripción: Página principal (Landing Page) de la ferretería. Presenta el banner principal,
+ * las categorías destacadas, los productos en oferta, los beneficios del servicio, horarios y contacto.
+ * 
+ * Criterios Evaluados Aplicados:
+ * 1. Manejo de Estado (useState) y Efectos (useEffect): Carga de productos desde 'localStorage' para obtener las ofertas iniciales y siembra de categorías.
+ * 2. Componentes y Layout Responsivo de Bootstrap: Uso de banners con gradientes, insignias (`badge`), tarjetas (`card shadow-sm`), cuadrículas adaptativas (`row g-3 g-md-4`, `col-12 col-md-6`) e iconos de Bootstrap.
+ * 3. Enrutamiento con React Router: Enlaces declarativos `<Link>` hacia el catálogo, ofertas, detalle del producto y categorías mediante slugs legibles.
+ */
 const Home = () => {
+  // Estado local para almacenar hasta 3 productos seleccionados como destacados/ofertas del mes
   const [productosDestacados, setProductosDestacados] = useState([]);
+  
+  // Estado local para almacenar las categorías principales a mostrar en el Home
   const [categoriasHome, setCategoriasHome] = useState([]);
 
+  // Arreglo de estilos visuales en gradiente para alternar colores en las tarjetas de categorías
   const colores = [
     'linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%)', // Azul
     'linear-gradient(135deg, #ffc107 0%, #fd7e14 100%)', // Naranja
     'linear-gradient(135deg, #198754 0%, #20c997 100%)', // Verde
     'linear-gradient(135deg, #6f42c1 0%, #d63384 100%)'  // Morado
   ];
+  
+  // Arreglo de iconos de Bootstrap Icons asociados dinámicamente a las categorías
   const iconos = ['bi-hammer', 'bi-bricks', 'bi-paint-bucket', 'bi-wrench'];
 
+  /**
+   * Hook useEffect: Se ejecuta una sola vez al cargar la página principal.
+   * Carga los productos de LocalStorage tomando los primeros 3 con `.slice(0, 3)`
+   * e inicializa las categorías predeterminadas en el almacenamiento del navegador.
+   */
   useEffect(() => {
-    // 1. Cargar productos destacados
+    // 1. Cargar productos destacados desde 'localStorage'
     const productos = JSON.parse(localStorage.getItem('react_productos')) || [];
     setProductosDestacados(productos.slice(0, 3));
 
-    // 2. Definir categorías actualizadas
+    // 2. Definir categorías actualizadas iniciales
     const categoriasActualizadas = [
       { id: 'cat-1', nombre: 'Herramientas Manuales', descripcion: 'Martillos, destornilladores, alicates.' },
       { id: 'cat-2', nombre: 'Materiales de Construcción', descripcion: 'Cemento, arena, ladrillos y materiales de obra.' }
     ];
 
-    // 3. Forzar actualización en localStorage
+    // 3. Forzar actualización en localStorage y sincronizar el estado
     localStorage.setItem('react_categorias', JSON.stringify(categoriasActualizadas));
     setCategoriasHome(categoriasActualizadas);
   }, []);
 
+  /**
+   * Función auxiliar 'slugify':
+   * Limpia acentos y convierte espacios en guiones para generar URLs amigables (slugs).
+   */
   const slugify = (texto) => {
     return texto.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '-');
   };
 
   return (
     <>
-      {/* HERO BANNER */}
+      {/* HERO BANNER - Encabezado llamativo con fondo degradado y tipografía adaptable */}
       <section className="text-white text-center py-3 py-md-5 mb-4 mb-md-5 rounded position-relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #D84315 0%, #212529 100%)', minHeight: '320px', display: 'flex', alignItems: 'center' }}>
         <i className="bi bi-tools position-absolute opacity-25 d-none d-md-block" style={{ fontSize: '15rem', top: '-2rem', left: '-2rem', pointerEvents: 'none' }}></i>
         <div className="container-fluid position-relative py-3 py-md-4 px-3">
@@ -49,7 +75,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* CATEGORÍAS */}
+      {/* SECCIÓN CATEGORÍAS - Mapeo dinámico de tarjetas navegables */}
       <section className="mb-4 mb-md-5">
         <h2 className="text-center fw-bold mb-4 fs-3 fs-md-2">
           <i className="bi bi-grid-3x3-gap-fill me-2 text-warning"></i>Nuestras Categorías
@@ -83,7 +109,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* OFERTAS DESTACADAS */}
+      {/* SECCIÓN OFERTAS DESTACADAS - Mapeo de productos destacados con cálculo de descuento simulado */}
       <section className="mb-4 mb-md-5">
         <h2 className="text-center fw-bold mb-4 fs-3 fs-md-2">
           <i className="bi bi-tag-fill me-2 text-danger"></i>
@@ -140,7 +166,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* POR QUÉ ELEGIRNOS */}
+      {/* SECCIÓN POR QUÉ ELEGIRNOS - Beneficios en grilla responsiva */}
       <section className="mb-4 mb-md-5">
         <h2 className="text-center fw-bold mb-4 fs-3 fs-md-2">
           <i className="bi bi-star-fill me-2 text-warning"></i>
@@ -186,7 +212,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* HORARIOS Y CONTACTO */}
+      {/* HORARIOS Y CONTACTO - Tarjetas informativas con gradientes */}
       <section className="mb-4 mb-md-5">
         <div className="row g-3 g-md-4">
           <div className="col-12 col-md-6">
@@ -242,7 +268,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* CTA FINAL */}
+      {/* CTA FINAL - Llamado a la acción hacia el catálogo */}
       <section
         className="text-center p-4 p-md-5 rounded mb-4 mb-md-5 text-white shadow-lg"
         style={{ background: 'linear-gradient(135deg, #D84315 0%, #212529 100%)' }}
@@ -254,6 +280,7 @@ const Home = () => {
         </Link>
       </section>
 
+      {/* Estilos CSS embebidos para efectos hover en las tarjetas de categoría */}
       <style>{`
         .category-card:hover {
           transform: translateY(-8px);
