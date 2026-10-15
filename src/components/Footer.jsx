@@ -1,14 +1,33 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
+/**
+ * Componente Funcional: Footer
+ * 
+ * Descripción: Pie de página general de la aplicación web.
+ * Criterios evaluados aplicados:
+ * 1. Diseño Responsivo y Sistema de Cuadrícula (Grid) de Bootstrap:
+ *    - Utiliza clases 'container', 'row' y puntos de interrupción ('col-12', 'col-md-6', 'col-lg-4')
+ *      para adaptar las columnas dinámicamente según el tamaño de la pantalla (móvil, tablet, escritorio).
+ * 2. Navegación SPA (Single Page Application):
+ *    - Uso de componentes <Link> de 'react-router-dom' para la navegación interna sin recargar la página.
+ * 3. Semántica HTML5:
+ *    - Implementación de la etiqueta semántica <footer> para mejorar la estructura y accesibilidad del DOM.
+ */
 const Footer = () => {
   return (
+    /* Etiqueta semántica HTML5 con clases de Bootstrap para fondo oscuro, texto blanco y espaciado vertical */
     <footer className="bg-dark text-white mt-5 py-4">
+      {/* Contenedor principal de Bootstrap para centrar y limitar el ancho del contenido */}
       <div className="container">
+        {/* Sistema de filas y rejilla (Grid System) con separación uniforme (g-3) */}
         <div className="row g-3">
-          {/* Columna 1: Info de la tienda */}
+          
+          {/* Columna 1: Información de la marca / Tienda */}
+          {/* Responsividad: Ocupa 12 columnas en móvil, 6 en tabletas y 4 en pantallas grandes */}
           <div className="col-12 col-md-6 col-lg-4 mb-3 mb-md-0">
             <h5 className="text-warning fw-bold">
+              {/* Iconografía mediante Bootstrap Icons */}
               <i className="bi bi-tools me-2"></i>Ferretería Don Juan
             </h5>
             <p className="text-secondary small">
@@ -17,11 +36,14 @@ const Footer = () => {
             </p>
           </div>
 
-          {/* Columna 2: Enlaces rápidos */}
+          {/* Columna 2: Navegación y Enlaces Rápidos */}
+          {/* Responsividad: Ocupa 6 columnas en móvil/tablet y 4 en escritorio */}
           <div className="col-6 col-md-6 col-lg-4">
             <h5 className="text-warning fw-bold fs-6">Enlaces Rápidos</h5>
+            {/* Lista sin viñetas de Bootstrap (list-unstyled) */}
             <ul className="list-unstyled small mb-0">
               <li className="mb-2">
+                {/* Componente Link para enrutamiento del lado del cliente (evita la recarga completa del DOM) */}
                 <Link to="/catalogo" className="text-white text-decoration-none">
                   <i className="bi bi-chevron-right me-1"></i>Catálogo
                 </Link>
@@ -44,7 +66,8 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Columna 3: Contacto y redes */}
+          {/* Columna 3: Información de Contacto y Redes Sociales */}
+          {/* Responsividad: Ocupa 6 columnas en móvil/tablet y 4 en escritorio */}
           <div className="col-6 col-md-6 col-lg-4">
             <h5 className="text-warning fw-bold fs-6">Contacto</h5>
             <ul className="list-unstyled small text-secondary mb-0">
@@ -64,6 +87,7 @@ const Footer = () => {
                 <i className="bi bi-clock-fill me-2"></i>Sáb: 9:00 - 14:00
               </li>
             </ul>
+            {/* Flexbox de Bootstrap (d-flex) con separación de elementos (gap-3) para las redes sociales */}
             <div className="d-flex gap-3 fs-5 mt-2">
               <a href="#facebook" className="text-white"><i className="bi bi-facebook"></i></a>
               <a href="#instagram" className="text-white"><i className="bi bi-instagram"></i></a>
@@ -73,9 +97,10 @@ const Footer = () => {
           </div>
         </div>
 
+        {/* Línea divisora estilizada con Bootstrap */}
         <hr className="border-secondary" />
 
-        {/* Copyright */}
+        {/* Sección de Derechos de Autor / Copyright */}
         <div className="text-center small text-secondary">
           <p className="mb-0">
             &copy; 2024 Ferretería Don Juan. Todos los derechos reservados. | Duoc UC

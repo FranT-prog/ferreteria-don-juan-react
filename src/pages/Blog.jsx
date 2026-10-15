@@ -1,9 +1,22 @@
 import React, { useState } from 'react';
 
+/**
+ * Componente de Página: Blog
+ * 
+ * Descripción: Página que muestra noticias, guías técnicas y consejos del rubro.
+ * Criterios Evaluados Aplicados:
+ * 1. Manejo de Estado (useState): Controla el filtro de categorías y el artículo seleccionado para la vista detallada (Modal).
+ * 2. Componentes de Bootstrap: Grilla responsiva (`row row-cols-1 row-cols-md-3`), Tarjetas (`card`), Insignias (`badge`) y Modal de Bootstrap para vista flotante.
+ * 3. Renderizado Dinámico: Uso de `.map()` y `.filter()` para renderizar y filtrar listas de noticias/artículos en tiempo real.
+ */
 const Blog = () => {
+  // Estado local para almacenar la categoría seleccionada en los botones de filtro
   const [categoriaSel, setCategoriaSel] = useState('Todas');
+  
+  // Estado local para almacenar el objeto del artículo seleccionado y desplegar el Modal de lectura (o null si está cerrado)
   const [articuloActivo, setArticuloActivo] = useState(null);
 
+  // Arreglo de datos dinámicos simulando la colección de artículos/noticias
   const articulos = [
     {
       id: 1,
@@ -58,24 +71,28 @@ const Blog = () => {
     }
   ];
 
+  // Evaluación lógica del filtro: Si es 'Todas' retorna el arreglo completo, de lo contrario filtra por categoría
   const articulosFiltrados = categoriaSel === 'Todas' 
     ? articulos 
     : articulos.filter(a => a.categoria === categoriaSel);
 
   return (
+    /* Contenedor responsivo principal con padding vertical */
     <div className="container py-2">
-      {/* Encabezado del Blog */}
+      {/* Encabezado del Blog estilizado con alerta/banner de Bootstrap */}
       <div className="bg-success text-white p-4 rounded-3 shadow-sm mb-4 text-center">
         <h1 className="fw-bold mb-2"><i className="bi bi-journal-text me-2"></i>Blog y Tips para Maestros</h1>
         <p className="text-white-50 mb-0">Guías técnicas, recomendaciones de uso y trucos para tus proyectos de construcción.</p>
       </div>
 
-      {/* Filtros de Categorías */}
+      {/* Botones de Filtro por Categoría con renderizado dinámico e interacción de estado */}
       <div className="d-flex justify-content-center gap-2 mb-4 flex-wrap">
         {['Todas', 'Herramientas Eléctricas', 'Mantenimiento', 'Construcción'].map((cat, idx) => (
           <button
             key={idx}
+            /* Alterna las clases de Bootstrap según el estado 'categoriaSel' */
             className={`btn btn-sm fw-bold ${categoriaSel === cat ? 'btn-success' : 'btn-outline-secondary'}`}
+            /* Modifica el estado al hacer clic */
             onClick={() => setCategoriaSel(cat)}
           >
             {cat}
@@ -83,10 +100,11 @@ const Blog = () => {
         ))}
       </div>
 
-      {/* Listado de Artículos */}
+      {/* Rejilla/Grid de Bootstrap para mostrar las tarjetas de los artículos (1 columna en móvil, 3 en escritorio) */}
       <div className="row row-cols-1 row-cols-md-3 g-4">
         {articulosFiltrados.map((item) => (
           <div className="col d-flex align-items-stretch" key={item.id}>
+            {/* Componente Card de Bootstrap */}
             <div className="card h-100 shadow-sm border-0">
               <img src={item.imagen} className="card-img-top" alt={item.titulo} style={{ height: '200px', objectFit: 'cover' }} />
               <div className="card-body d-flex flex-column">
@@ -95,6 +113,7 @@ const Blog = () => {
                 <p className="card-text text-muted small mb-3">{item.resumen}</p>
                 <div className="mt-auto border-top pt-3 d-flex justify-content-between align-items-center">
                   <small className="text-muted"><i className="bi bi-calendar3 me-1"></i>{item.fecha}</small>
+                  {/* Evento onClick para guardar el artículo en el estado 'articuloActivo' y desplegar el Modal */}
                   <button 
                     className="btn btn-outline-success btn-sm fw-bold"
                     onClick={() => setArticuloActivo(item)}
@@ -108,15 +127,17 @@ const Blog = () => {
         ))}
       </div>
 
-      {/* Modal para ver artículo completo */}
+      {/* Renderizado Condicional del Modal: Solo se muestra en el DOM si 'articuloActivo' no es null */}
       {articuloActivo && (
         <div className="modal show d-block tab-index-1 bg-dark bg-opacity-50" style={{ backdropFilter: 'blur(3px)' }}>
           <div className="modal-dialog modal-lg modal-dialog-centered">
             <div className="modal-content">
+              {/* Encabezado del Modal */}
               <div className="modal-header bg-success text-white">
                 <h5 className="modal-title fw-bold">{articuloActivo.titulo}</h5>
                 <button type="button" className="btn-close btn-close-white" onClick={() => setArticuloActivo(null)}></button>
               </div>
+              {/* Cuerpo del Modal con datos dinámicos del objeto guardado en el estado */}
               <div className="modal-body p-4">
                 <div className="d-flex justify-content-between text-muted small mb-3">
                   <span><strong>Autor:</strong> {articuloActivo.autor}</span>
@@ -127,6 +148,7 @@ const Blog = () => {
                   {articuloActivo.contenido}
                 </div>
               </div>
+              {/* Pie del Modal con botón para cerrar reseteando el estado a null */}
               <div className="modal-footer">
                 <button type="button" className="btn btn-secondary" onClick={() => setArticuloActivo(null)}>Cerrar</button>
               </div>
