@@ -13,33 +13,62 @@ import GestionCategorias from './GestionCategorias';
 import GestionUsuarios from './GestionUsuarios';
 import PerfilUsuario from './PerfilUsuario';
 
+/**
+ * Componente de Página: PanelAdmin
+ * 
+ * Descripción: Panel central de administración (Back-Office) de la ferretería.
+ * Integra la gestión de dashboard de métricas, listado global de órdenes, inventario de productos,
+ * y orquesta mediante submódulos las secciones de categorías, reportes, usuarios y perfil.
+ * 
+ * Criterios Evaluados Aplicados:
+ * 1. Arquitectura Modular SPA (Single Page Application): Alterna entre vistas locales mediante el estado `vistaActiva` y reuso de subcomponentes (`GestionCategorias`, `GestionUsuarios`, etc.).
+ * 2. Cálculo de Métricas y Filtros Avanzados: Procesa en tiempo real ingresos acumulados con `.reduce()` y filtrado dinámico en búsquedas con `.filter()`.
+ * 3. Menú Lateral Responsivo (Sidebar + Backdrop): Soporte móvil mediante el estado `menuMovilAbierto`, botón flotante tipo hamburguesa y capa de sombra traslúcida.
+ */
 const PanelAdmin = () => {
+  // Estado para controlar la sección o pestaña activa ('dashboard', 'pedidos', 'productos', 'categorias', etc.)
   const [vistaActiva, setVistaActiva] = useState('dashboard');
+  
+  // Estado booleano para alternar la visibilidad del menú desplegable en dispositivos móviles
   const [menuMovilAbierto, setMenuMovilAbierto] = useState(false);
 
+  // Estados locales para almacenar los datos traídos desde la base de datos centralizada
   const [usuarios, setUsuarios] = useState([]);
   const [productos, setProductos] = useState([]);
   const [pedidos, setPedidos] = useState([]);
 
-  // Filtros de búsqueda
+  // Estados para los campos de filtrado y búsqueda en las tablas
   const [filtroEstadoPedido, setFiltroEstadoPedido] = useState('todos');
   const [busquedaProducto, setBusquedaProducto] = useState('');
 
+  /**
+   * Hook useEffect: Se ejecuta una vez al montar el componente.
+   * Invoca la función `cargarDatos` para consultar LocalStorage mediante la capa de datos (`database.js`).
+   */
   useEffect(() => {
     cargarDatos();
   }, []);
 
+  /**
+   * Carga/Refresca las colecciones de usuarios, productos y pedidos desde 'database.js'.
+   */
   const cargarDatos = () => {
     setUsuarios(getUsuarios());
     setProductos(getProductos());
     setPedidos(getPedidos());
   };
 
+  /**
+   * Actualiza el estado de un pedido en la base de datos y refresca el estado local de la tabla.
+   */
   const handleActualizarEstadoPedido = (id, nuevoEstado) => {
     updateEstadoPedido(id, nuevoEstado);
     setPedidos(getPedidos());
   };
 
+  /**
+   * Elimina un pedido previa confirmación nativa del usuario (`window.confirm`).
+   */
   const handleEliminarPedido = (id) => {
     if (window.confirm(`¿Estás seguro de eliminar el pedido ${id}?`)) {
       deletePedido(id);
@@ -47,6 +76,9 @@ const PanelAdmin = () => {
     }
   };
 
+  /**
+   * Función auxiliar que devuelve un componente Badge de Bootstrap personalizado según el estado del pedido.
+   */
   const obtenerBadgeEstado = (estado) => {
     switch (estado) {
       case 'Pendiente': return <span className="badge bg-warning text-dark">Pendiente</span>;
@@ -58,6 +90,9 @@ const PanelAdmin = () => {
     }
   };
 
+  /**
+   * Elimina un producto del inventario previa confirmación y actualiza el estado.
+   */
   const handleEliminarProducto = (id) => {
     if (window.confirm(`¿Estás seguro de eliminar el producto ${id}?`)) {
       deleteProducto(id);
@@ -65,15 +100,18 @@ const PanelAdmin = () => {
     }
   };
 
+  /**
+   * Cambia la vista del panel principal y cierra automáticamente el menú en móviles.
+   */
   const cambiarVista = (vista) => {
     setVistaActiva(vista);
     setMenuMovilAbierto(false); // Cierra el menú al hacer clic en móvil
   };
 
-  // Métricas
+  // Métricas: Suma acumulada de ingresos considerando únicamente pedidos no cancelados
   const totalIngresos = pedidos.reduce((acc, p) => p.estado !== 'Cancelado' ? acc + p.total : acc, 0);
 
-  // Listas Filtradas
+  // Listas Filtradas en tiempo real para las tablas de Órdenes e Inventario
   const pedidosFiltrados = pedidos.filter(p => filtroEstadoPedido === 'todos' || p.estado === filtroEstadoPedido);
   const productosFiltrados = productos.filter(p => p.nombre.toLowerCase().includes(busquedaProducto.toLowerCase()) || p.id.toLowerCase().includes(busquedaProducto.toLowerCase()));
 
@@ -90,7 +128,7 @@ const PanelAdmin = () => {
         <i className={`bi ${menuMovilAbierto ? 'bi-x-lg' : 'bi-list'} fs-4`}></i>
       </button>
 
-      {/* FONDO OSCURO PARA MÓVIL (Backdrop) */}
+      {/* FONDO OSCURO PARA MÓVIL (Backdrop traslúcido) */}
       {menuMovilAbierto && (
         <div 
           className="position-fixed top-0 start-0 w-100 h-100 bg-dark opacity-50 d-md-none" 
@@ -99,7 +137,7 @@ const PanelAdmin = () => {
         ></div>
       )}
 
-      {/* SIDEBAR DEL ADMIN */}
+      {/* SIDEBAR DEL ADMIN - Menú de navegación lateral */}
       <div 
         className={`bg-white border-end shadow-sm d-flex flex-column flex-shrink-0 ${
           menuMovilAbierto ? 'position-fixed top-0 start-0 h-100' : 'd-none d-md-flex'
@@ -121,6 +159,7 @@ const PanelAdmin = () => {
         </div>
         
         <div className="p-0 d-flex flex-column flex-grow-1 justify-content-between">
+          {/* Botones de navegación de las distintas vistas */}
           <ul className="nav nav-pills flex-column mb-auto p-3 gap-1">
             <li className="nav-item">
               <button 
@@ -191,10 +230,10 @@ const PanelAdmin = () => {
         </div>
       </div>
 
-      {/* CONTENIDO PRINCIPAL */}
+      {/* CONTENIDO PRINCIPAL DINÁMICO */}
       <div className="flex-grow-1 p-4 overflow-auto" style={{ width: '100%' }}>
         
-        {/* VISTA 1: DASHBOARD */}
+        {/* VISTA 1: DASHBOARD CON TARJETAS DE MÉTRICAS Y ACCESOS RÁPIDOS */}
         {vistaActiva === 'dashboard' && (
           <div>
             <div className="mb-4">
@@ -202,7 +241,7 @@ const PanelAdmin = () => {
               <p className="text-muted">Resumen de las actividades diarias</p>
             </div>
 
-            {/* Tarjetas de colores */}
+            {/* Tarjetas resumen de métricas */}
             <div className="row g-3 mb-4">
               <div className="col-md-4">
                 <div className="card border-0 text-white bg-primary shadow-sm h-100">
@@ -239,7 +278,7 @@ const PanelAdmin = () => {
               </div>
             </div>
 
-            {/* Cuadrícula de accesos directos */}
+            {/* Cuadrícula de accesos directos a secciones */}
             <div className="row g-3">
               {[
                 { id: 'dashboard', title: 'Dashboard', icon: 'bi-speedometer2', color: 'text-primary', desc: 'Visión general de todas las métricas y estadísticas.' },
@@ -275,7 +314,7 @@ const PanelAdmin = () => {
           </div>
         )}
 
-        {/* OTRAS VISTAS */}
+        {/* VISTA 2: LISTADO GLOBAL DE PEDIDOS / ÓRDENES */}
         {vistaActiva === 'pedidos' && (
           <div className="card shadow-sm border-0">
             <div className="card-header bg-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
@@ -382,6 +421,7 @@ const PanelAdmin = () => {
           </div>
         )}
 
+        {/* VISTA 3: INVENTARIO DE PRODUCTOS */}
         {vistaActiva === 'productos' && (
           <div className="card shadow-sm border-0">
             <div className="card-header bg-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
@@ -445,6 +485,7 @@ const PanelAdmin = () => {
           </div>
         )}
 
+        {/* RENDERIZADO DE SUBMÓDULOS IMPORTADOS DE FORMA CONDICIONAL */}
         {vistaActiva === 'categorias' && <GestionCategorias />}
         {vistaActiva === 'reportesProductos' && <ReportesProductos />}
         {vistaActiva === 'usuarios' && <GestionUsuarios />}

@@ -1,8 +1,29 @@
+/**
+ * Hoja de Estilos Global: index.css
+ *
+ * Descripción: Estilos CSS personalizados que se aplican a toda la aplicación y que
+ * conviven con Bootstrap. Define el reset base, la tipografía, el control del
+ * desbordamiento horizontal y la animación de las tarjetas de acceso directo.
+ *
+ * Criterios Evaluados Aplicados:
+ * 1. Estilos globales y reset: Selector universal y selectores de elemento (`*`, `html`, `body`).
+ * 2. Diseño responsivo: Prevención de scroll horizontal con `max-width: 100vw` y `overflow-x: hidden`.
+ * 3. Tipografía: Pila de fuentes del sistema (`font-family`) con respaldo `sans-serif`.
+ * 4. Interactividad visual: Transiciones y transformaciones CSS en la pseudo-clase `:hover`.
+ */
+
 /* Reset y estilos globales */
+
+/* Selector universal: aplica a TODOS los elementos de la página.
+   border-box hace que el ancho (width) incluya el padding y el borde,
+   evitando que los elementos se desborden de su contenedor. */
 * {
   box-sizing: border-box;
 }
 
+/* Elimina los márgenes y rellenos por defecto que agrega el navegador.
+   overflow-x: hidden y max-width: 100vw evitan la barra de desplazamiento horizontal
+   (100vw = 100% del ancho visible de la ventana). */
 html, body {
   margin: 0;
   padding: 0;
@@ -11,28 +32,40 @@ html, body {
   max-width: 100vw;
 }
 
+/* Tipografía principal de la aplicación: usa la fuente nativa del sistema operativo
+   (San Francisco en Apple, Segoe UI en Windows, Roboto en Android, etc.).
+   Si una fuente no existe en el equipo, el navegador prueba la siguiente de la lista
+   y, al final, usa cualquier fuente sans-serif. */
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
+  /* Suavizado de fuentes: hace que el texto se vea más nítido en macOS y iOS */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Fuente monoespaciada (todas las letras con el mismo ancho) para bloques de código */
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
 
+/* #root es el contenedor donde React monta toda la aplicación (index.html).
+   Se repiten aquí las restricciones de ancho para que ningún componente
+   provoque scroll horizontal. */
 #root {
   overflow-x: hidden;
   width: 100%;
   max-width: 100vw;
 }
 
+/* Tarjetas de accesos directos del dashboard (clase usada en PanelAdmin.jsx).
+   La transición está en el estado base para que anime tanto al subir como al volver. */
 .action-card {
   transition: transform 0.2s ease-in-out;
 }
+/* Al pasar el mouse, la tarjeta se desplaza 5px hacia arriba sin mover a las vecinas */
 .action-card:hover {
   transform: translateY(-5px);
 }

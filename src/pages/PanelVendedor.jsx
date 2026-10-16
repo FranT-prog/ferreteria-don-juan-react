@@ -3,14 +3,39 @@ import { Link } from 'react-router-dom';
 import { getPedidos, updateEstadoPedido, deletePedido, getProductos, deleteProducto } from '../data/database';
 import GestionCategorias from './GestionCategorias';
 
-
+/**
+ * Componente de Página: PanelVendedor
+ * 
+ * Descripción: Módulo operativo para la gestión diaria del rol 'Vendedor'. Permite administrar
+ * el ciclo de vida de las órdenes de venta (cambiar estados y eliminar), controlar el inventario de productos
+ * y gestionar las categorías mediante la integración del submódulo <GestionCategorias />.
+ * 
+ * Criterios Evaluados Aplicados:
+ * 1. Control de Navegación por Pestañas (Estado `vistaActiva`): Alterna entre las vistas 'pedidos', 'productos' y 'categorias' sin recargar la aplicación.
+ * 2. Integración con Capa Centralizada de Datos (`database.js`): Persistencia y sincronización de órdenes y productos mediante funciones modularizadas (`getPedidos`, `updateEstadoPedido`, etc.).
+ * 3. Cálculo de Indicadores Clave (KPIs) y Filtrado Dinámico: Procesa totales de ventas no canceladas, órdenes pendientes y filtrado multivariable en listas.
+ * 4. Componentes y Layouts de Bootstrap: Pestañas estilizadas (`nav nav-tabs nav-fill`), insignias con iconos (`badge bg-*`), encabezados con métricas y tablas responsivas.
+ */
 const PanelVendedor = () => {
+  // Estado para controlar la pestaña o vista activa ('pedidos', 'productos', 'categorias')
   const [vistaActiva, setVistaActiva] = useState('pedidos');
+  
+  // Estado local para almacenar el listado completo de pedidos
   const [pedidos, setPedidos] = useState([]);
+  
+  // Estado local para almacenar la lista completa de productos
   const [productos, setProductos] = useState([]);
+  
+  // Estado para el selector de filtro por estado de pedido ('todos', 'Pendiente', etc.)
   const [filtroEstadoPedido, setFiltroEstadoPedido] = useState('todos');
+  
+  // Estado para capturar la búsqueda por texto en el inventario de productos
   const [busquedaProducto, setBusquedaProducto] = useState('');
 
+  /**
+   * Hook useEffect: Se ejecuta al montar el componente.
+   * Consulta las colecciones centralizadas de datos a través de 'database.js'.
+   */
   useEffect(() => {
     // Cargar datos desde la capa centralizada (database.js)
     setPedidos(getPedidos());
@@ -18,11 +43,18 @@ const PanelVendedor = () => {
   }, []);
 
   // --- Funciones para Pedidos ---
+
+  /**
+   * Manejador para actualizar el estado del pedido en LocalStorage y refrescar la vista.
+   */
   const handleActualizarEstado = (id, nuevoEstado) => {
     updateEstadoPedido(id, nuevoEstado);
     setPedidos(getPedidos());
   };
 
+  /**
+   * Manejador para eliminar un pedido previa confirmación en ventana emergente nativa.
+   */
   const handleEliminarPedido = (id) => {
     if (window.confirm(`¿Estás seguro de que deseas eliminar permanentemente el pedido ${id}?`)) {
       deletePedido(id);
@@ -30,6 +62,9 @@ const PanelVendedor = () => {
     }
   };
 
+  /**
+   * Función auxiliar para obtener insignias decorativas con iconos según el estado de la orden.
+   */
   const obtenerBadgeEstado = (estado) => {
     switch (estado) {
       case 'Pendiente':
@@ -48,6 +83,10 @@ const PanelVendedor = () => {
   };
 
   // --- Funciones para Productos ---
+
+  /**
+   * Manejador para eliminar un producto del inventario centralizado previa confirmación.
+   */
   const handleEliminarProducto = (id) => {
     if (window.confirm(`¿Estás seguro de que deseas eliminar el producto con código ${id}?`)) {
       deleteProducto(id);
@@ -55,7 +94,7 @@ const PanelVendedor = () => {
     }
   };
 
-  // Filtros de búsqueda
+  // Filtros de búsqueda en tiempo real
   const pedidosFiltrados = pedidos.filter(p => {
     if (filtroEstadoPedido === 'todos') return true;
     return p.estado === filtroEstadoPedido;
@@ -67,12 +106,13 @@ const PanelVendedor = () => {
     (p.categoria && p.categoria.toLowerCase().includes(busquedaProducto.toLowerCase()))
   );
 
+  // Cálculo de Métricas e Indicadores Rápidos para el Vendedor
   const totalVentas = pedidos.reduce((acc, p) => p.estado !== 'Cancelado' ? acc + p.total : acc, 0);
   const pedidosPendientes = pedidos.filter(p => p.estado === 'Pendiente' || p.estado === 'En preparación').length;
 
   return (
     <div className="container-fluid px-0">
-      {/* Encabezado */}
+      {/* Encabezado Verde del Panel con Resumen de Ventas e Indicadores */}
       <div className="bg-success text-white p-4 rounded-3 shadow-sm mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
         <div>
           <h2 className="fw-bold mb-1"><i className="bi bi-person-badge me-2"></i>Panel del Vendedor</h2>
@@ -88,7 +128,7 @@ const PanelVendedor = () => {
         </div>
       </div>
 
-      {/* Pestañas */}
+      {/* Navegación por Pestañas (Tabs) de Bootstrap */}
       <ul className="nav nav-tabs nav-fill mb-4 border-bottom border-2">
         <li className="nav-item">
           <button
@@ -106,7 +146,7 @@ const PanelVendedor = () => {
             <i className="bi bi-boxes me-2"></i>Gestión de Productos ({productos.length})
           </button>
         </li>
-        {/* NUEVA PESTAÑA: Categorías */}
+        {/* PESTAÑA CATEGORÍAS: Carga el subcomponente reutilizable */}
         <li className="nav-item">
           <button
             className={`nav-link fw-bold fs-5 py-3 ${vistaActiva === 'categorias' ? 'active text-success border-success border-bottom-0' : 'text-secondary'}`}
@@ -117,7 +157,7 @@ const PanelVendedor = () => {
         </li>
       </ul>
 
-      {/* PESTAÑA PEDIDOS */}
+      {/* PESTAÑA 1: GESTIÓN DE PEDIDOS */}
       {vistaActiva === 'pedidos' && (
         <div className="card shadow-sm border-0">
           <div className="card-header bg-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
@@ -224,8 +264,7 @@ const PanelVendedor = () => {
         </div>
       )}
 
-
-      {/* PESTAÑA PRODUCTOS */}
+      {/* PESTAÑA 2: INVENTARIO DE PRODUCTOS */}
       {vistaActiva === 'productos' && (
         <div className="card shadow-sm border-0">
           <div className="card-header bg-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
@@ -326,7 +365,7 @@ const PanelVendedor = () => {
         </div>
       )}
 
-      {/* PESTAÑA CATEGORÍAS */}
+      {/* PESTAÑA 3: GESTIÓN DE CATEGORÍAS (Incrustación del módulo subcomponente) */}
       {vistaActiva === 'categorias' && (
         <GestionCategorias />
       )}

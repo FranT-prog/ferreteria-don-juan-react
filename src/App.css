@@ -1,19 +1,30 @@
+/**
+ * Hoja de Estilos Globales: App.css
+ * 
+ * Descripción: Define la configuración visual base de la aplicación React. Combina los estilos predeterminados
+ * de la plantilla inicial (Create React App) con parches de maquetación responsiva, control de desbordamiento
+ * horizontal en dispositivos móviles y ajustes para la barra de navegación pegajosa (sticky navbar).
+ */
+
 /* Estilos base de React (dejar por si acaso) */
 .App {
   text-align: center;
 }
 
+/* Control de altura y comportamiento de puntero para el logo */
 .App-logo {
   height: 40vmin;
   pointer-events: none;
 }
 
+/* Regla de accesibilidad: Aplica animación giratoria solo si el usuario no tiene activada la preferencia de movimiento reducido */
 @media (prefers-reduced-motion: no-preference) {
   .App-logo {
     animation: App-logo-spin infinite 20s linear;
   }
 }
 
+/* Contenedor principal de la plantilla base con flexbox y fondo oscuro */
 .App-header {
   background-color: #282c34;
   min-height: 100vh;
@@ -25,10 +36,12 @@
   color: white;
 }
 
+/* Color distintivo para hipervínculos dentro del header base */
 .App-link {
   color: #61dafb;
 }
 
+/* Animación de rotación continua (360 grados) para elementos con el logo */
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);
@@ -38,23 +51,24 @@
   }
 }
 
-/*  AGREGADO */
+/*  AGREGADO - Reglas personalizadas para ajuste responsivo y corrección de desbordamientos */
+
+/* Evita la aparición de barras de desplazamiento horizontal (scroll lateral) en pantallas pequeñas */
 .App {
   overflow-x: hidden;
   max-width: 100vw;
   width: 100%;
 }
 
+/* Sobreescritura de margen de relleno interno y ancho máximo para el contenedor responsivo */
 .container {
   padding-left: 15px;
   padding-right: 15px;
   max-width: 100%;
 }
 
-/* Fix para el navbar sticky */
+/* Fix para el navbar sticky: Asegura que la barra fija abarque exactamente el ancho visible de la ventana */
 .navbar.sticky-top {
   width: 100%;
   max-width: 100vw;
 }
-
-
