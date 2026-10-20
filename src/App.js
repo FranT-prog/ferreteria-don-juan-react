@@ -117,10 +117,14 @@ function App() {
           usuarioActivo?.rol === 'Administrador' ? <PanelAdmin /> : <Navigate to="/login" />
         } />
         <Route path="/admin/nuevo" element={
-          usuarioActivo?.rol === 'Administrador' ? <div className="container my-4"><FormularioProducto /></div> : <Navigate to="/login" />
+          (usuarioActivo?.rol === 'Vendedor' || usuarioActivo?.rol === 'Administrador') 
+            ? <div className="container my-4"><FormularioProducto /></div> 
+            : <Navigate to="/login" />
         } />
         <Route path="/admin/editar/:id" element={
-          usuarioActivo?.rol === 'Administrador' ? <div className="container my-4"><EditarProducto /></div> : <Navigate to="/login" />
+          (usuarioActivo?.rol === 'Vendedor' || usuarioActivo?.rol === 'Administrador') 
+            ? <div className="container my-4"><EditarProducto /></div> 
+            : <Navigate to="/login" />
         } />
         <Route path="/admin/usuario/nuevo" element={
           usuarioActivo?.rol === 'Administrador' ? <div className="container my-4"><FormularioUsuario /></div> : <Navigate to="/login" />
