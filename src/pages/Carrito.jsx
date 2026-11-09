@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { createPedido } from '../data/database';
+import { createPedido, getCuentaCorriente } from '../data/database';
+
+// Formas de pago disponibles. El valor 'Cuenta corriente' es el que usa database.js para generar cargos a crédito.
+const OPCIONES_PAGO = [
+  { valor: 'Transferencia', titulo: 'Transferencia', icono: 'bi-bank', detalle: 'Transferencia bancaria' },
+  { valor: 'Efectivo', titulo: 'Efectivo', icono: 'bi-cash-coin', detalle: 'Pagas en efectivo al recibir o retirar' },
+  { valor: 'Cuenta corriente', titulo: 'Crédito', icono: 'bi-credit-card-2-front', detalle: 'Se carga a tu cuenta corriente (vence a 30 días)' }
+];
 
 /**
  * Componente de Página: Carrito
@@ -30,6 +37,11 @@ const Carrito = ({ onActualizarCarrito }) => {
 
   // Estado local para almacenar los mensajes de error del formulario
   const [errores, setErrores] = useState({});
+    // Forma de pago elegida por el cliente
+  const [formaPago, setFormaPago] = useState('Transferencia');
+
+  // Cuenta corriente del cliente con sesión activa (null si no hay sesión); sirve para validar el pago a crédito
+  const [cuenta, setCuenta] = useState(null);
 
   // Hook de React Router para navegación programática (redirección tras compra o rechazo)
   const navigate = useNavigate();
@@ -48,8 +60,10 @@ const Carrito = ({ onActualizarCarrito }) => {
       setDatosCliente(prev => ({
         ...prev,
         nombre: usuarioActivo.nombre || '',
-        email: usuarioActivo.email || ''
+        email: usuarioActivo.email || '',
+        
       }));
+      setCuenta(getCuentaCorriente(usuarioActivo));
     }
   }, []);
 
@@ -118,6 +132,15 @@ const Carrito = ({ onActualizarCarrito }) => {
     return carrito.reduce((total, item) => total + (item.precio * (item.cantidad || 1)), 0);
   };
 
+    // Reglas para pagar a crédito: debe haber sesión, no tener saldo vencido y que el total quepa en el crédito disponible
+  const motivoSinCredito = !cuenta
+    ? 'Inicia sesión para pagar a crédito.'
+    : cuenta.saldoVencido > 0
+      ? 'Tienes saldo vencido en tu cuenta corriente.'
+      : calcularTotal() > cuenta.creditoDisponible
+        ? `El total supera tu crédito disponible ($${cuenta.creditoDisponible.toLocaleString('es-CL')}).`
+        : '';
+  const puedeCredito = motivoSinCredito === '';
   /**
    * Función Unificada de Procesamiento de Compra:
    * Previenen la recarga de página, valida campos, simula la pasarela de pago, descuenta el stock de productos,
@@ -133,12 +156,23 @@ const Carrito = ({ onActualizarCarrito }) => {
       return; // Si hay errores, nos detenemos aquí y mostramos las alertas rojas
     }
 
+       // Si eligió pagar a crédito, se verifica que cumpla las reglas de la cuenta corriente
+    if (formaPago === 'Cuenta corriente' && !puedeCredito) {
+      setErrores({ formaPago: motivoSinCredito });
+      return;
+    }
+
     // 2. Si pasa las validaciones, mostramos la ventanita de simulación
-    const pagoAprobado = window.confirm("Simulación de pago:\n[Aceptar] = Pago Exitoso\n[Cancelar] = Pago Rechazado");
+    // (el pago a crédito no pasa por la pasarela: se carga directo a la cuenta corriente)
+    const pagoAprobado = formaPago === 'Cuenta corriente' || window.confirm()
 
     if (pagoAprobado) {
       // 3. LÓGICA DE ÉXITO: Creamos el pedido y descontamos stock
+      // Se guarda el id del usuario con sesión activa para poder mostrarle el pedido en "Mis Pedidos"
+      const usuarioSesion = JSON.parse(localStorage.getItem('react_usuario_activo'));
       const nuevoPedido = {
+        usuarioId: usuarioSesion?.id || null,
+        formaPago,
         cliente: datosCliente.nombre.trim(),
         rut: datosCliente.rut.trim(),
         email: datosCliente.email.trim(),
@@ -299,6 +333,40 @@ const Carrito = ({ onActualizarCarrito }) => {
                     {errores.direccion && <div className="invalid-feedback">{errores.direccion}</div>}
                   </div>
 
+                                    {/* Selector de forma de pago */}
+                  <div className="mb-4">
+                    <label className="form-label fw-bold small text-muted">Forma de pago</label>
+                    {OPCIONES_PAGO.map((op) => {
+                      const esCredito = op.valor === 'Cuenta corriente';
+                      const deshabilitada = esCredito && !puedeCredito;
+                      return (
+                        <div key={op.valor} className={`form-check border rounded-3 p-2 ps-5 mb-2 ${formaPago === op.valor ? 'border-success bg-white' : ''}`}>
+                          <input
+                            className="form-check-input"
+                            type="radio"
+                            name="formaPago"
+                            id={`pago-${op.valor}`}
+                            value={op.valor}
+                            checked={formaPago === op.valor}
+                            disabled={deshabilitada}
+                            onChange={() => { setFormaPago(op.valor); setErrores({ ...errores, formaPago: '' }); }}
+                          />
+                          <label className="form-check-label w-100" htmlFor={`pago-${op.valor}`}>
+                            <i className={`bi ${op.icono} me-2`}></i><strong>{op.titulo}</strong>
+                            <small className="text-muted d-block">
+                              {deshabilitada ? motivoSinCredito : op.detalle}
+                            </small>
+                            {esCredito && cuenta && puedeCredito && (
+                              <small className="text-success d-block">
+                                Crédito disponible: ${cuenta.creditoDisponible.toLocaleString('es-CL')}
+                              </small>
+                            )}
+                          </label>
+                        </div>
+                      );
+                    })}
+                    {errores.formaPago && <div className="text-danger small">{errores.formaPago}</div>}
+                  </div>
                   <hr />
 
                   {/* Cálculo del Total */}

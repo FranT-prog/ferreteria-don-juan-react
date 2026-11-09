@@ -25,11 +25,15 @@ const PagoExitoso = () => {
       {/* Detalle secundario con tipografía suavizada */}
       <p className="lead text-muted">Tu pedido ha sido procesado correctamente y ya está en preparación.</p>
       
-      {/* Botón de retorno que activa la navegación sin refresco de página */}
-      <Link to="/" className="btn btn-outline-primary mt-4 px-4 py-2 fw-bold">
-        Volver a la tienda
-      </Link>
-    </div>
+            <div className="d-flex flex-wrap justify-content-center gap-2 mt-4">
+        <Link to="/mi-cuenta" className="btn btn-success px-4 py-2 fw-bold">
+          <i className="bi bi-bag-check me-2"></i>Ver mis pedidos
+        </Link>
+        </div>
+        <Link to="/" className="btn btn-outline-primary px-4 py-2 fw-bold">
+          Volver a la tienda
+        </Link>
+      </div>
   );
 };
 

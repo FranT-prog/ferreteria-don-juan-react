@@ -69,3 +69,102 @@ code {
 .action-card:hover {
   transform: translateY(-5px);
 }
+/* ==========================================================
+   Línea de tiempo del pedido (componente LineaTiempoPedido.jsx)
+   Móvil: vertical. Pantallas >= 768px: horizontal.
+   ========================================================== */
+.linea-tiempo {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.linea-tiempo__paso {
+  position: relative;
+  display: flex;
+  gap: 0.75rem;
+  padding-bottom: 1.25rem;
+}
+
+.linea-tiempo__paso:last-child {
+  padding-bottom: 0;
+}
+
+/* Conector entre una etapa y la siguiente (vertical en móvil) */
+.linea-tiempo__paso::before {
+  content: '';
+  position: absolute;
+  left: 16px;
+  top: 36px;
+  bottom: 0;
+  width: 3px;
+  background: #dee2e6;
+}
+
+.linea-tiempo__paso:last-child::before {
+  display: none;
+}
+
+.linea-tiempo__paso--completada::before {
+  background: #198754;
+}
+
+/* Círculo con el icono de la etapa */
+.linea-tiempo__icono {
+  flex: 0 0 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e9ecef;
+  color: #6c757d;
+  z-index: 1;
+}
+
+.linea-tiempo__paso--completada .linea-tiempo__icono {
+  background: #198754;
+  color: #fff;
+}
+
+.linea-tiempo__paso--actual .linea-tiempo__icono {
+  background: #ffc107;
+  color: #212529;
+  box-shadow: 0 0 0 4px rgba(255, 193, 7, 0.3);
+}
+
+.linea-tiempo__texto {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+
+.linea-tiempo__paso--pendiente .linea-tiempo__texto strong {
+  color: #6c757d;
+}
+
+@media (min-width: 768px) {
+  .linea-tiempo {
+    flex-direction: row;
+  }
+
+  .linea-tiempo__paso {
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.5rem;
+    padding-bottom: 0;
+  }
+
+  /* Conector horizontal: va del borde del círculo actual al borde del siguiente */
+  .linea-tiempo__paso::before {
+    top: 16px;
+    bottom: auto;
+    left: calc(50% + 22px);
+    width: calc(100% - 44px);
+    height: 3px;
+  }
+}

@@ -84,6 +84,14 @@ const Navbar = ({ contadorCarrito, usuarioActivo, onLogout }) => {
               <NavLink className={({ isActive }) => `nav-link ${isActive ? 'active fw-bold' : ''}`} to="/blog">Blog & Tips</NavLink>
             </li>
 
+            {/* Acceso directo a "Mis Pedidos" solo para el rol 'Cliente' */}
+            {usuarioActivo?.rol === 'Cliente' && (
+              <li className="nav-item">
+                <NavLink className={({ isActive }) => `nav-link text-info ${isActive ? 'active fw-bold' : ''}`} to="/mi-cuenta">
+                  <i className="bi bi-bag-check me-1"></i>Mis Pedidos
+                </NavLink>
+              </li>
+            )}
             {/* Renderizado condicional basado en Props y Operador Optional Chaining (?.):
                 Solo el rol 'Administrador' puede ver este enlace */}
             {usuarioActivo?.rol === 'Administrador' && (
@@ -110,6 +118,9 @@ const Navbar = ({ contadorCarrito, usuarioActivo, onLogout }) => {
                   {/* BOTÓN PERFIL MOBILE */}
                   <Link to="/perfil" className="btn btn-outline-info btn-sm w-100 text-start">
                     <i className="bi bi-person-gear me-2"></i>Mi Perfil
+                  </Link>
+                  <Link to="/mi-cuenta" className="btn btn-outline-warning btn-sm w-100 text-start">
+                    <i className="bi bi-bag-check me-2"></i>Mis Pedidos y Cuenta
                   </Link>
                   <button className="btn btn-light btn-sm w-100 text-start" onClick={handleLogout}>
                     <i className="bi bi-box-arrow-right me-2"></i>Cerrar Sesión ({usuarioActivo.nombre})
@@ -140,6 +151,12 @@ const Navbar = ({ contadorCarrito, usuarioActivo, onLogout }) => {
                       <i className="bi bi-person-gear me-2"></i> Mi Perfil
                     </Link>
                   </li>
+                    <li>
+                    <Link to="/mi-cuenta" className="dropdown-item">
+                      <i className="bi bi-bag-check me-2"></i> Mis Pedidos y Cuenta
+                    </Link>
+                  </li>
+                  <li><hr className="dropdown-divider" /></li>
                   <li><hr className="dropdown-divider" /></li>
                   <li><button className="dropdown-item text-danger fw-bold" onClick={handleLogout}>Cerrar Sesión</button></li>
                 </ul>

@@ -20,6 +20,7 @@ import Registro from './pages/Registro';
 import PagoRechazado from './pages/PagoRechazado';
 import ReportesProductos from './pages/ReportesProductos';
 import PerfilUsuario from './pages/PerfilUsuario';
+import PanelCliente from './pages/PanelCliente';
 
 // Importación de componentes y submódulos para la administración (Back-Office)
 import PanelAdmin from './pages/PanelAdmin';
@@ -109,6 +110,8 @@ function App() {
         <Route path="/pago-rechazado" element={<div className="container my-4"><PagoRechazado /></div>} />
         <Route path="/admin/reportes-productos" element={<div className="container my-4"><ReportesProductos /></div>} />
         <Route path="/perfil" element={<PerfilUsuario usuarioActivo={usuarioActivo} />} />
+        {/* Área del cliente: pedidos en curso, historial y cuenta corriente */}
+        <Route path="/mi-cuenta" element={<PanelCliente usuarioActivo={usuarioActivo} />} />
 
         {/* ============================================
             RUTAS PROTEGIDAS DE ADMINISTRACIÓN (Exclusivas para rol 'Administrador')
