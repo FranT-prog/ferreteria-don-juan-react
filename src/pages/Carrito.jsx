@@ -2,11 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPedido, getCuentaCorriente } from '../data/database';
 
-// Formas de pago disponibles. El valor 'Cuenta corriente' es el que usa database.js para generar cargos a crédito.
-const OPCIONES_PAGO = [
+// Métodos para pagar la parte de la compra que NO se carga a la cuenta corriente
+const METODOS_CONTADO = [
   { valor: 'Transferencia', titulo: 'Transferencia', icono: 'bi-bank', detalle: 'Transferencia bancaria' },
-  { valor: 'Efectivo', titulo: 'Efectivo', icono: 'bi-cash-coin', detalle: 'Pagas en efectivo al recibir o retirar' },
-  { valor: 'Cuenta corriente', titulo: 'Crédito', icono: 'bi-credit-card-2-front', detalle: 'Se carga a tu cuenta corriente (vence a 30 días)' }
+  { valor: 'Efectivo', titulo: 'Efectivo', icono: 'bi-cash-coin', detalle: 'Pagas en efectivo al recibir o retirar' }
 ];
 
 /**
@@ -37,8 +36,11 @@ const Carrito = ({ onActualizarCarrito }) => {
 
   // Estado local para almacenar los mensajes de error del formulario
   const [errores, setErrores] = useState({});
-    // Forma de pago elegida por el cliente
-  const [formaPago, setFormaPago] = useState('Transferencia');
+
+  // Pago mixto: la cuenta corriente y transferencia/efectivo pueden compartir el total de la compra
+  const [metodoContado, setMetodoContado] = useState('Transferencia'); // cómo se paga el resto
+  const [usarCuenta, setUsarCuenta] = useState(false);               // ¿parte del pago va a la cuenta corriente?
+  const [montoCuenta, setMontoCuenta] = useState('');                // cuánto se carga a la cuenta corriente
 
   // Cuenta corriente del cliente con sesión activa (null si no hay sesión); sirve para validar el pago a crédito
   const [cuenta, setCuenta] = useState(null);
@@ -60,8 +62,7 @@ const Carrito = ({ onActualizarCarrito }) => {
       setDatosCliente(prev => ({
         ...prev,
         nombre: usuarioActivo.nombre || '',
-        email: usuarioActivo.email || '',
-        
+        email: usuarioActivo.email || ''
       }));
       setCuenta(getCuentaCorriente(usuarioActivo));
     }
@@ -132,15 +133,25 @@ const Carrito = ({ onActualizarCarrito }) => {
     return carrito.reduce((total, item) => total + (item.precio * (item.cantidad || 1)), 0);
   };
 
-    // Reglas para pagar a crédito: debe haber sesión, no tener saldo vencido y que el total quepa en el crédito disponible
-  const motivoSinCredito = !cuenta
-    ? 'Inicia sesión para pagar a crédito.'
+  const total = calcularTotal();
+
+  // Reglas para usar la cuenta corriente: debe haber sesión, no tener saldo vencido y tener algo disponible
+  const motivoSinCuenta = !cuenta
+    ? 'Inicia sesión para pagar con tu cuenta corriente.'
     : cuenta.saldoVencido > 0
       ? 'Tienes saldo vencido en tu cuenta corriente.'
-      : calcularTotal() > cuenta.creditoDisponible
-        ? `El total supera tu crédito disponible ($${cuenta.creditoDisponible.toLocaleString('es-CL')}).`
+      : cuenta.creditoDisponible <= 0
+        ? 'No tienes crédito disponible.'
         : '';
-  const puedeCredito = motivoSinCredito === '';
+  const puedeUsarCuenta = motivoSinCuenta === '';
+
+  // Máximo que se puede cargar a la cuenta en esta compra (dinero a favor + crédito, sin pasar del total)
+  const maxCuenta = puedeUsarCuenta ? Math.min(total, cuenta.creditoDisponible) : 0;
+
+  // Monto que realmente se pagará con la cuenta (entre 0 y el máximo) y el resto, que va por transferencia/efectivo
+  const montoACuenta = usarCuenta ? Math.min(Math.max(parseInt(montoCuenta, 10) || 0, 0), maxCuenta) : 0;
+  const montoContado = total - montoACuenta;
+
   /**
    * Función Unificada de Procesamiento de Compra:
    * Previenen la recarga de página, valida campos, simula la pasarela de pago, descuenta el stock de productos,
@@ -156,23 +167,43 @@ const Carrito = ({ onActualizarCarrito }) => {
       return; // Si hay errores, nos detenemos aquí y mostramos las alertas rojas
     }
 
-       // Si eligió pagar a crédito, se verifica que cumpla las reglas de la cuenta corriente
-    if (formaPago === 'Cuenta corriente' && !puedeCredito) {
-      setErrores({ formaPago: motivoSinCredito });
-      return;
+    // Si eligió usar la cuenta corriente, se verifica el monto y las reglas de la cuenta
+    if (usarCuenta) {
+      const pedido = parseInt(montoCuenta, 10) || 0;
+      if (!puedeUsarCuenta) {
+        setErrores({ formaPago: motivoSinCuenta });
+        return;
+      }
+      if (pedido <= 0) {
+        setErrores({ formaPago: 'Ingresa cuánto quieres pagar con tu cuenta corriente.' });
+        return;
+      }
+      if (pedido > maxCuenta) {
+        setErrores({ formaPago: `Con tu cuenta corriente puedes pagar hasta $${maxCuenta.toLocaleString('es-CL')} en esta compra.` });
+        return;
+      }
     }
 
-    // 2. Si pasa las validaciones, mostramos la ventanita de simulación
-    // (el pago a crédito no pasa por la pasarela: se carga directo a la cuenta corriente)
-    const pagoAprobado = formaPago === 'Cuenta corriente' || window.confirm()
+    // 2. Si pasa las validaciones, mostramos la ventanita de simulación.
+    // La parte pagada con la cuenta corriente no pasa por la pasarela: se carga directo a la cuenta.
+    // Solo se simula el pago de la parte que va por transferencia o efectivo.
+    const pagoAprobado = montoContado === 0 || window.confirm(`Simulación de pago (${metodoContado}: $${montoContado.toLocaleString('es-CL')}):\n[Aceptar] = Pago Exitoso\n[Cancelar] = Pago Rechazado`);
 
     if (pagoAprobado) {
       // 3. LÓGICA DE ÉXITO: Creamos el pedido y descontamos stock
       // Se guarda el id del usuario con sesión activa para poder mostrarle el pedido en "Mis Pedidos"
       const usuarioSesion = JSON.parse(localStorage.getItem('react_usuario_activo'));
+      // Detalle de cómo se pagó la compra: una parte con cuenta corriente y/o el resto con transferencia o efectivo
+      const pagos = [];
+      if (montoACuenta > 0) pagos.push({ metodo: 'Cuenta corriente', monto: montoACuenta });
+      if (montoContado > 0) pagos.push({ metodo: metodoContado, monto: montoContado });
+      const formaPago = pagos.length > 1 ? `Mixto (${metodoContado} + Cuenta corriente)` : pagos[0].metodo;
+
       const nuevoPedido = {
         usuarioId: usuarioSesion?.id || null,
         formaPago,
+        pagos,
+        montoCredito: montoACuenta, // lo que se carga a la cuenta corriente (genera deuda)
         cliente: datosCliente.nombre.trim(),
         rut: datosCliente.rut.trim(),
         email: datosCliente.email.trim(),
@@ -333,46 +364,142 @@ const Carrito = ({ onActualizarCarrito }) => {
                     {errores.direccion && <div className="invalid-feedback">{errores.direccion}</div>}
                   </div>
 
-                                    {/* Selector de forma de pago */}
+                  {/* Forma de pago: la cuenta corriente y transferencia/efectivo pueden compartir el total */}
                   <div className="mb-4">
                     <label className="form-label fw-bold small text-muted">Forma de pago</label>
-                    {OPCIONES_PAGO.map((op) => {
-                      const esCredito = op.valor === 'Cuenta corriente';
-                      const deshabilitada = esCredito && !puedeCredito;
-                      return (
-                        <div key={op.valor} className={`form-check border rounded-3 p-2 ps-5 mb-2 ${formaPago === op.valor ? 'border-success bg-white' : ''}`}>
-                          <input
-                            className="form-check-input"
-                            type="radio"
-                            name="formaPago"
-                            id={`pago-${op.valor}`}
-                            value={op.valor}
-                            checked={formaPago === op.valor}
-                            disabled={deshabilitada}
-                            onChange={() => { setFormaPago(op.valor); setErrores({ ...errores, formaPago: '' }); }}
-                          />
-                          <label className="form-check-label w-100" htmlFor={`pago-${op.valor}`}>
-                            <i className={`bi ${op.icono} me-2`}></i><strong>{op.titulo}</strong>
-                            <small className="text-muted d-block">
-                              {deshabilitada ? motivoSinCredito : op.detalle}
-                            </small>
-                            {esCredito && cuenta && puedeCredito && (
-                              <small className="text-success d-block">
-                                Crédito disponible: ${cuenta.creditoDisponible.toLocaleString('es-CL')}
-                              </small>
-                            )}
-                          </label>
+
+                    {/* Parte que se paga con la cuenta corriente (dinero a favor + crédito) */}
+                    <div className={`border rounded-3 p-3 mb-2 ${usarCuenta ? 'border-success bg-white' : ''}`}>
+                      <div className="form-check">
+                        <input
+                          className="form-check-input"
+                          type="checkbox"
+                          id="usar-cuenta"
+                          checked={usarCuenta}
+                          disabled={!puedeUsarCuenta}
+                          onChange={(e) => {
+                            setUsarCuenta(e.target.checked);
+                            setMontoCuenta(e.target.checked ? String(maxCuenta) : '');
+                            setErrores({ ...errores, formaPago: '' });
+                          }}
+                        />
+                        <label className="form-check-label w-100" htmlFor="usar-cuenta">
+                          <i className="bi bi-credit-card-2-front me-2"></i><strong>Pagar con mi cuenta corriente</strong>
+                          <small className="text-muted d-block">
+                            {puedeUsarCuenta
+                              ? 'Usa tu dinero a favor y tu crédito (el crédito vence a 30 días).'
+                              : motivoSinCuenta}
+                          </small>
+                        </label>
+                      </div>
+
+                      {usarCuenta && puedeUsarCuenta && (
+                        <div className="mt-3">
+                          <label className="form-label small fw-bold text-muted mb-1">Monto a pagar con mi cuenta</label>
+                          <div className="input-group">
+                            <span className="input-group-text">$</span>
+                            <input
+                              type="number"
+                              min="1"
+                              max={maxCuenta}
+                              className="form-control"
+                              value={montoCuenta}
+                              onChange={(e) => { setMontoCuenta(e.target.value); setErrores({ ...errores, formaPago: '' }); }}
+                            />
+                            <button type="button" className="btn btn-outline-success" onClick={() => setMontoCuenta(String(maxCuenta))}>
+                              Usar máximo
+                            </button>
+                          </div>
+                          <small className="text-muted">Máximo para esta compra: ${maxCuenta.toLocaleString('es-CL')}</small>
                         </div>
-                      );
-                    })}
+                      )}
+                    </div>
+
+                    {/* Parte restante: se paga con transferencia o efectivo */}
+                    {montoContado > 0 ? (
+                      <div className="border rounded-3 p-3 mb-2">
+                        <div className="fw-bold small mb-2">
+                          {montoACuenta > 0 ? `El resto ($${montoContado.toLocaleString('es-CL')}) lo pagas con:` : 'Pagas con:'}
+                        </div>
+                        {METODOS_CONTADO.map((op) => (
+                          <div key={op.valor} className="form-check form-check-inline">
+                            <input
+                              className="form-check-input"
+                              type="radio"
+                              name="metodoContado"
+                              id={`contado-${op.valor}`}
+                              checked={metodoContado === op.valor}
+                              onChange={() => setMetodoContado(op.valor)}
+                            />
+                            <label className="form-check-label" htmlFor={`contado-${op.valor}`}>
+                              <i className={`bi ${op.icono} me-1`}></i>{op.titulo}
+                            </label>
+                          </div>
+                        ))}
+                        <small className="text-muted d-block mt-1">
+                          {METODOS_CONTADO.find((op) => op.valor === metodoContado).detalle}
+                        </small>
+                      </div>
+                    ) : (
+                      <div className="text-success small fw-bold mb-2">
+                        <i className="bi bi-check-circle me-1"></i>Toda la compra se paga con tu cuenta corriente.
+                      </div>
+                    )}
                     {errores.formaPago && <div className="text-danger small">{errores.formaPago}</div>}
                   </div>
+
                   <hr />
+
+                  {/* Resumen de la cuenta corriente del cliente (solo con sesión iniciada) */}
+                  {cuenta && (
+                    <div className="border rounded-3 bg-white p-3 mb-3">
+                      <div className="fw-bold small text-muted mb-2">
+                        <i className="bi bi-wallet2 me-1"></i>Tu cuenta corriente
+                      </div>
+                      <div className="d-flex justify-content-between small">
+                        <span>Dinero a favor</span>
+                        <strong className="text-success">${cuenta.saldoAFavor.toLocaleString('es-CL')}</strong>
+                      </div>
+                      <div className="d-flex justify-content-between small">
+                        <span>Crédito disponible</span>
+                        <strong className="text-success">${cuenta.lineaCreditoDisponible.toLocaleString('es-CL')}</strong>
+                      </div>
+                      <div className="d-flex justify-content-between small">
+                        <span>Saldo pendiente</span>
+                        <strong className={cuenta.saldoPendiente > 0 ? 'text-danger' : ''}>${cuenta.saldoPendiente.toLocaleString('es-CL')}</strong>
+                      </div>
+                      {cuenta.saldoVencido > 0 && (
+                        <div className="d-flex justify-content-between small">
+                          <span>Saldo vencido</span>
+                          <strong className="text-danger">${cuenta.saldoVencido.toLocaleString('es-CL')}</strong>
+                        </div>
+                      )}
+                      {/* Cómo se repartirá el pago de esta compra */}
+                      {montoACuenta > 0 && (
+                        <div className="border-top mt-2 pt-2 small">
+                          <div className="d-flex justify-content-between">
+                            <span>Con cuenta corriente</span>
+                            <strong>${montoACuenta.toLocaleString('es-CL')}</strong>
+                          </div>
+                          {montoContado > 0 && (
+                            <div className="d-flex justify-content-between">
+                              <span>Con {metodoContado.toLowerCase()}</span>
+                              <strong>${montoContado.toLocaleString('es-CL')}</strong>
+                            </div>
+                          )}
+                          <div className="d-flex justify-content-between text-muted">
+                            <span>Disponible en tu cuenta después de comprar</span>
+                            <span>${(cuenta.creditoDisponible - montoACuenta).toLocaleString('es-CL')}</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {/* Cálculo del Total */}
                   <div className="d-flex justify-content-between align-items-center mb-4">
                     <span className="fs-5 fw-bold text-secondary">Total a Pagar:</span>
-                    <strong className="fs-3 text-danger">${calcularTotal().toLocaleString()}</strong>
+                    <strong className="fs-3 text-danger">${calcularTotal().toLocaleString('es-CL')}</strong>
                   </div>
 
                   {/* Botón Submit para procesar el pedido */}

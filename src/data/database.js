@@ -23,6 +23,7 @@ export const DIAS_PLAZO_CREDITO = 30;
 
 // Línea de crédito (en pesos) asignada por defecto a un cliente
 export const LIMITE_CREDITO_DEFECTO = 300000;
+
 // Arreglo de datos semilla (Seed Data) para inicializar el catálogo de productos
 const PRODUCTOS_INICIALES = [
   { 
@@ -128,6 +129,7 @@ const inicializarBD = () => {
 
 // Ejecuación automática al cargar el módulo
 inicializarBD();
+
 /**
  * Datos de demostración para el cliente de ejemplo (cliente@gmail.com):
  * agrega pedidos en distintas etapas y abonos a su cuenta corriente, con fechas relativas a HOY,
@@ -337,6 +339,7 @@ export const deletePedido = (id) => {
   const filtrados = pedidos.filter(p => p.id !== id);
   localStorage.setItem('react_pedidos', JSON.stringify(filtrados));
 };
+
 // ==========================================
 // FUNCIONES: VISTAS DEL CLIENTE (PEDIDOS Y CUENTA CORRIENTE)
 // ==========================================
@@ -384,14 +387,19 @@ export const createAbono = (usuarioId, monto, metodo = 'Transferencia', descripc
 export const getCuentaCorriente = (usuario, hoy = hoyISO()) => {
   const limite = usuario?.limiteCredito ?? LIMITE_CREDITO_DEFECTO;
 
+  // Parte de cada pedido que se cargó a la cuenta corriente: en un pago mixto es solo una porción del total.
+  // Los pedidos antiguos (sin 'montoCredito') se consideran a crédito completo si su forma de pago fue 'Cuenta corriente'.
+  const montoACredito = (p) =>
+    p.montoCredito !== undefined ? p.montoCredito : (p.formaPago === 'Cuenta corriente' ? p.total : 0);
+
   const cargos = getPedidosDeCliente(usuario)
-    .filter(p => p.formaPago === 'Cuenta corriente' && p.estado !== 'Cancelado')
+    .filter(p => montoACredito(p) > 0 && p.estado !== 'Cancelado')
     .map(p => ({
       id: p.id,
       tipo: 'Cargo',
       fecha: p.fecha,
-      descripcion: `Compra ${p.id}`,
-      monto: p.total,
+      descripcion: montoACredito(p) < p.total ? `Compra ${p.id} (parte a crédito)` : `Compra ${p.id}`,
+      monto: montoACredito(p),
       vencimiento: sumarDias(p.fecha, DIAS_PLAZO_CREDITO)
     }));
 
@@ -441,7 +449,10 @@ export const getCuentaCorriente = (usuario, hoy = hoyISO()) => {
     saldoAFavor: Math.max(0, totalAbonos - totalCargos),
     saldoVencido,
     saldoPorVencer: saldoPendiente - saldoVencido,
-    creditoDisponible: Math.max(0, limite - saldoPendiente),
+    // El saldo a favor (abonos que superan la deuda) suma al crédito disponible
+    creditoDisponible: Math.max(0, limite - (totalCargos - totalAbonos)),
+    // Solo la línea de crédito, sin contar el dinero a favor
+    lineaCreditoDisponible: Math.max(0, limite - saldoPendiente),
     porcentajeUso: limite > 0 ? Math.min(100, Math.round((saldoPendiente / limite) * 100)) : 0,
     proximoVencimiento: proximos[0] ? { fecha: proximos[0].vencimiento, monto: proximos[0].pendiente, dias: diasEntre(hoy, proximos[0].vencimiento) } : null,
     documentos: documentos.reverse(),

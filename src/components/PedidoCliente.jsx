@@ -74,6 +74,12 @@ const PedidoCliente = ({ pedido, lineaTiempoSiempreVisible = false }) => {
           <div className="col-6 col-md-3">
             <small className="text-muted d-block">Forma de pago</small>
             <strong>{pedido.formaPago || 'Contado'}</strong>
+              {/* Si el pago se dividió, se muestra cuánto fue con cada método */}
+            {pedido.pagos && pedido.pagos.length > 1 && (
+              <small className="text-muted d-block">
+                {pedido.pagos.map((pg) => `${pg.metodo}: ${formatearPeso(pg.monto)}`).join(' · ')}
+              </small>
+            )}
           </div>
           <div className="col-6 col-md-3">
             <small className="text-muted d-block">Despacho</small>

@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { getPedidosDeCliente, getCuentaCorriente, createAbono } from '../data/database';
 import { esPedidoEnCurso } from '../utils/pedidos';
 import PedidoCliente from '../components/PedidoCliente';
 import CuentaCorrienteCliente from '../components/CuentaCorrienteCliente';
-import { getPedidosDeCliente, getCuentaCorriente, createAbono } from '../data/database';
 
 // Lee la sesión guardada en LocalStorage (respaldo por si la prop todavía no llegó desde App.js)
 const leerSesion = () => JSON.parse(localStorage.getItem('react_usuario_activo'));
@@ -14,14 +14,15 @@ const leerSesion = () => JSON.parse(localStorage.getItem('react_usuario_activo')
  * Descripción: Módulo "Mis Pedidos" para el rol 'Cliente'. Reúne en pestañas:
  *  1. Pedidos en curso (fecha de pedido, fecha de entrega, detalle y línea de tiempo).
  *  2. Historial de todas las compras con su detalle (con filtro por estado).
- *  3. Cuenta corriente (saldo, saldo pendiente, crédito disponible, documentos y movimientos).
+ *  3. Cuenta corriente (saldo, saldo pendiente, crédito disponible, abonos, documentos y movimientos).
  *
  * Props Recibidas:
  * @param {Object|null} usuarioActivo - Usuario con sesión iniciada (viene del estado global de App.js).
  *
  * Criterios Evaluados Aplicados:
  * 1. Control de Navegación por Pestañas (estado `vistaActiva`), igual que en PanelVendedor.
- * 2. Comunicación de Componentes mediante Props: pasa cada pedido a <PedidoCliente /> y la cuenta a <CuentaCorrienteCliente />.
+ * 2. Comunicación de Componentes mediante Props y Callbacks: pasa cada pedido a <PedidoCliente />,
+ *    y a <CuentaCorrienteCliente /> la cuenta y la función `onAbonar`.
  * 3. Integración con la capa de datos (`database.js`) y optimización con useMemo para no recalcular en cada render.
  * 4. Renderizado condicional: mensaje de "inicia sesión" y estados vacíos.
  */
@@ -40,9 +41,10 @@ const PanelCliente = ({ usuarioActivo }) => {
     setUsuario(usuarioActivo || leerSesion());
   }, [usuarioActivo]);
 
-  // Datos del cliente: se recalculan solo cuando cambia el usuario
+  // Pedidos del cliente: se recalculan solo cuando cambia el usuario
   const pedidos = useMemo(() => getPedidosDeCliente(usuario), [usuario]);
-   // La cuenta corriente vive en un estado para poder refrescarla después de cada abono
+
+  // La cuenta corriente vive en un estado para poder refrescarla después de cada abono
   const [cuenta, setCuenta] = useState(() => (usuario ? getCuentaCorriente(usuario) : null));
 
   // Recalcula la cuenta cuando cambia el usuario
@@ -58,7 +60,6 @@ const PanelCliente = ({ usuarioActivo }) => {
     createAbono(usuario.id, monto, metodo);
     setCuenta(getCuentaCorriente(usuario));
   };
-{vistaActiva === 'cuenta' && <CuentaCorrienteCliente cuenta={cuenta} onAbonar={handleAbonar} />}
 
   // Sin sesión iniciada: se invita a ingresar
   if (!usuario) {
@@ -149,8 +150,8 @@ const PanelCliente = ({ usuarioActivo }) => {
         </>
       )}
 
-      {/* PESTAÑA 3: Cuenta corriente */}
-      {vistaActiva === 'cuenta' && <CuentaCorrienteCliente cuenta={cuenta} />}
+      {/* PESTAÑA 3: Cuenta corriente (con la función para registrar abonos) */}
+      {vistaActiva === 'cuenta' && <CuentaCorrienteCliente cuenta={cuenta} onAbonar={handleAbonar} />}
     </div>
   );
 };
