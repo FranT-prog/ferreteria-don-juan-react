@@ -145,7 +145,7 @@ const Carrito = ({ onActualizarCarrito }) => {
         : '';
   const puedeUsarCuenta = motivoSinCuenta === '';
 
-  // Máximo que se puede cargar a la cuenta en esta compra (dinero a favor + crédito, sin pasar del total)
+  // Máximo que se puede cargar a la cuenta en esta compra (crédito disponible, sin pasar del total)
   const maxCuenta = puedeUsarCuenta ? Math.min(total, cuenta.creditoDisponible) : 0;
 
   // Monto que realmente se pagará con la cuenta (entre 0 y el máximo) y el resto, que va por transferencia/efectivo
@@ -368,7 +368,7 @@ const Carrito = ({ onActualizarCarrito }) => {
                   <div className="mb-4">
                     <label className="form-label fw-bold small text-muted">Forma de pago</label>
 
-                    {/* Parte que se paga con la cuenta corriente (dinero a favor + crédito) */}
+                    {/* Parte que se paga con la cuenta corriente (crédito) */}
                     <div className={`border rounded-3 p-3 mb-2 ${usarCuenta ? 'border-success bg-white' : ''}`}>
                       <div className="form-check">
                         <input
@@ -387,7 +387,7 @@ const Carrito = ({ onActualizarCarrito }) => {
                           <i className="bi bi-credit-card-2-front me-2"></i><strong>Pagar con mi cuenta corriente</strong>
                           <small className="text-muted d-block">
                             {puedeUsarCuenta
-                              ? 'Usa tu dinero a favor y tu crédito (el crédito vence a 30 días).'
+                              ? 'Usa tu crédito disponible (vence a 30 días).'
                               : motivoSinCuenta}
                           </small>
                         </label>
@@ -457,12 +457,8 @@ const Carrito = ({ onActualizarCarrito }) => {
                         <i className="bi bi-wallet2 me-1"></i>Tu cuenta corriente
                       </div>
                       <div className="d-flex justify-content-between small">
-                        <span>Dinero a favor</span>
-                        <strong className="text-success">${cuenta.saldoAFavor.toLocaleString('es-CL')}</strong>
-                      </div>
-                      <div className="d-flex justify-content-between small">
                         <span>Crédito disponible</span>
-                        <strong className="text-success">${cuenta.lineaCreditoDisponible.toLocaleString('es-CL')}</strong>
+                        <strong className="text-success">${cuenta.creditoDisponible.toLocaleString('es-CL')}</strong>
                       </div>
                       <div className="d-flex justify-content-between small">
                         <span>Saldo pendiente</span>

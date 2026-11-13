@@ -93,7 +93,6 @@ const CuentaCorrienteCliente = ({ cuenta, onAbonar }) => {
               <div className={`fs-3 fw-bold ${cuenta.saldoPendiente > 0 ? 'text-danger' : 'text-success'}`}>
                 {formatearPeso(cuenta.saldoPendiente)}
               </div>
-              {cuenta.saldoAFavor > 0 && <small className="text-success">Saldo a favor: {formatearPeso(cuenta.saldoAFavor)}</small>}
             </div>
           </div>
         </div>
@@ -117,8 +116,8 @@ const CuentaCorrienteCliente = ({ cuenta, onAbonar }) => {
           <div className="card shadow-sm border-0 h-100">
             <div className="card-body">
               <small className="text-muted text-uppercase fw-bold">Saldo vencido</small>
-              <div className={`fs-3 fw-bold ${cuenta.saldoVencido > 0 ? 'text-danger' : 'text-muted'}`}>
-                {formatearPeso(cuenta.saldoVencido)}
+              <div className={`fs-3 fw-bold ${cuenta.saldoVencido > 0 ? 'text-danger' : 'text-success'}`}>
+                {cuenta.saldoVencido > 0 ? formatearPeso(cuenta.saldoVencido) : 'Al día'}
               </div>
               <small className="text-muted">Por vencer: {formatearPeso(cuenta.saldoPorVencer)}</small>
             </div>

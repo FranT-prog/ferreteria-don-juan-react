@@ -446,13 +446,10 @@ export const getCuentaCorriente = (usuario, hoy = hoyISO()) => {
     totalCargos,
     totalAbonos,
     saldoPendiente,
-    saldoAFavor: Math.max(0, totalAbonos - totalCargos),
     saldoVencido,
     saldoPorVencer: saldoPendiente - saldoVencido,
-    // El saldo a favor (abonos que superan la deuda) suma al crédito disponible
-    creditoDisponible: Math.max(0, limite - (totalCargos - totalAbonos)),
-    // Solo la línea de crédito, sin contar el dinero a favor
-    lineaCreditoDisponible: Math.max(0, limite - saldoPendiente),
+    // Crédito disponible = límite de crédito menos lo que se debe
+    creditoDisponible: Math.max(0, limite - saldoPendiente),
     porcentajeUso: limite > 0 ? Math.min(100, Math.round((saldoPendiente / limite) * 100)) : 0,
     proximoVencimiento: proximos[0] ? { fecha: proximos[0].vencimiento, monto: proximos[0].pendiente, dias: diasEntre(hoy, proximos[0].vencimiento) } : null,
     documentos: documentos.reverse(),
