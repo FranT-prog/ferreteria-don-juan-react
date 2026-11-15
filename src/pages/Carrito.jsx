@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPedido, getCuentaCorriente } from '../data/database';
+import { hoyISO } from '../utils/fechas';
+import { DIRECCION_TIENDA, HORARIO_ATENCION, calcularFechaRetiro, formatearFechaLarga } from '../utils/tienda';
 
 // Métodos para pagar la parte de la compra que NO se carga a la cuenta corriente
 const METODOS_CONTADO = [
   { valor: 'Transferencia', titulo: 'Transferencia', icono: 'bi-bank', detalle: 'Transferencia bancaria' },
-  { valor: 'Efectivo', titulo: 'Efectivo', icono: 'bi-cash-coin', detalle: 'Pagas en efectivo al recibir o retirar' }
+  { valor: 'Efectivo', titulo: 'Efectivo', icono: 'bi-cash-coin', detalle: '' }
 ];
 
 /**
@@ -36,6 +38,9 @@ const Carrito = ({ onActualizarCarrito }) => {
 
   // Estado local para almacenar los mensajes de error del formulario
   const [errores, setErrores] = useState({});
+
+  // Tipo de entrega: 'Despacho' (a domicilio, pide dirección) o 'Retiro' (en la tienda, la tienda fija la fecha)
+  const [tipoEntrega, setTipoEntrega] = useState('Despacho');
 
   // Pago mixto: la cuenta corriente y transferencia/efectivo pueden compartir el total de la compra
   const [metodoContado, setMetodoContado] = useState('Transferencia'); // cómo se paga el resto
@@ -107,7 +112,8 @@ const Carrito = ({ onActualizarCarrito }) => {
       nuevosErrores.email = 'El correo debe terminar en @gmail.com o @losmaestros.cl.';
     }
 
-    if (!datosCliente.direccion.trim()) {
+    // La dirección solo es obligatoria si se elige despacho a domicilio
+    if (tipoEntrega === 'Despacho' && !datosCliente.direccion.trim()) {
       nuevosErrores.direccion = 'La dirección de despacho es obligatoria.';
     }
 
@@ -134,6 +140,10 @@ const Carrito = ({ onActualizarCarrito }) => {
   };
 
   const total = calcularTotal();
+
+  // Retiro en tienda: la tienda asigna la fecha (siguiente día de atención)
+  const esRetiro = tipoEntrega === 'Retiro';
+  const fechaRetiro = calcularFechaRetiro(hoyISO());
 
   // Reglas para usar la cuenta corriente: debe haber sesión, no tener saldo vencido y tener algo disponible
   const motivoSinCuenta = !cuenta
@@ -207,7 +217,10 @@ const Carrito = ({ onActualizarCarrito }) => {
         cliente: datosCliente.nombre.trim(),
         rut: datosCliente.rut.trim(),
         email: datosCliente.email.trim(),
-        direccion: datosCliente.direccion.trim(),
+        // En retiro no hay dirección de despacho; la fecha de retiro la fija la tienda
+        tipoEntrega: esRetiro ? 'Retiro en tienda' : 'Despacho a domicilio',
+        direccion: esRetiro ? '' : datosCliente.direccion.trim(),
+        ...(esRetiro ? { fechaEntrega: fechaRetiro } : {}),
         total: calcularTotal(),
         estado: 'Pendiente',
         items: carrito.map(item => ({
@@ -234,7 +247,7 @@ const Carrito = ({ onActualizarCarrito }) => {
       if (onActualizarCarrito) onActualizarCarrito();
 
       // Navegamos al éxito
-      navigate('/pago-exitoso'); 
+      navigate('/pago-exitoso', { state: { tipoEntrega, fechaRetiro } });
     } else {
       // 4. LÓGICA DE RECHAZO: Navegamos a la vista de error (sin crear pedido ni vaciar carrito)
       navigate('/pago-rechazado');
@@ -300,7 +313,7 @@ const Carrito = ({ onActualizarCarrito }) => {
             <div className="card shadow-sm border-0 bg-light">
               <div className="card-body p-4">
                 <h5 className="card-title fw-bold mb-3 text-dark">
-                  <i className="bi bi-person-lines-fill me-2"></i>Datos de Despacho
+                  <i className="bi bi-person-lines-fill me-2"></i>Datos de Entrega
                 </h5>
                 
                 {/* Formulario conectado a la función unificada 'procesarCompraFinal' */}
@@ -350,19 +363,63 @@ const Carrito = ({ onActualizarCarrito }) => {
                     </div>
                   </div>
 
-                  {/* Campo Dirección */}
-                  <div className="mb-4">
-                    <label className="form-label fw-bold small text-muted">Dirección de Despacho</label>
-                    <input 
-                      type="text" 
-                      className={`form-control ${errores.direccion ? 'is-invalid' : ''}`}
-                      name="direccion" 
-                      value={datosCliente.direccion} 
-                      onChange={handleChangeInput} 
-                      placeholder="Av. Concha y Toro #1234, Puente Alto" 
-                    />
-                    {errores.direccion && <div className="invalid-feedback">{errores.direccion}</div>}
+                  {/* Tipo de entrega: despacho a domicilio o retiro en la tienda */}
+                  <div className="mb-3">
+                    <label className="form-label fw-bold small text-muted">Tipo de entrega</label>
+                    <div className="d-flex gap-3">
+                      <div className="form-check">
+                        <input
+                          className="form-check-input"
+                          type="radio"
+                          id="entrega-despacho"
+                          name="tipoEntrega"
+                          checked={!esRetiro}
+                          onChange={() => setTipoEntrega('Despacho')}
+                        />
+                        <label className="form-check-label" htmlFor="entrega-despacho">
+                          <i className="bi bi-truck me-1"></i>Despacho a domicilio
+                        </label>
+                      </div>
+                      <div className="form-check">
+                        <input
+                          className="form-check-input"
+                          type="radio"
+                          id="entrega-retiro"
+                          name="tipoEntrega"
+                          checked={esRetiro}
+                          onChange={() => {
+                            setTipoEntrega('Retiro');
+                            setErrores({ ...errores, direccion: '' });
+                          }}
+                        />
+                        <label className="form-check-label" htmlFor="entrega-retiro">
+                          <i className="bi bi-shop me-1"></i>Retiro en tienda
+                        </label>
+                      </div>
+                    </div>
                   </div>
+
+                  {/* Despacho: pide la dirección. Retiro: informa dónde, desde cuándo y el horario */}
+                  {esRetiro ? (
+                    <div className="alert alert-success small mb-4">
+                      <div><strong>Retiras en:</strong> {DIRECCION_TIENDA}</div>
+                      <div><strong>Fecha de retiro (la asigna la tienda):</strong> desde el {formatearFechaLarga(fechaRetiro)}</div>
+                      <div><strong>Horario:</strong> {HORARIO_ATENCION}</div>
+                    </div>
+                  ) : (
+                    <div className="mb-4">
+                      <label className="form-label fw-bold small text-muted">Dirección de Despacho</label>
+                      <input 
+                        type="text" 
+                        className={`form-control ${errores.direccion ? 'is-invalid' : ''}`}
+                        name="direccion" 
+                        value={datosCliente.direccion} 
+                        onChange={handleChangeInput} 
+                        placeholder="Av. Concha y Toro #1234, Puente Alto" 
+                      />
+                      {errores.direccion && <div className="invalid-feedback">{errores.direccion}</div>}
+                    </div>
+                  )}
 
                   {/* Forma de pago: la cuenta corriente y transferencia/efectivo pueden compartir el total */}
                   <div className="mb-4">
@@ -436,9 +493,12 @@ const Carrito = ({ onActualizarCarrito }) => {
                             </label>
                           </div>
                         ))}
-                        <small className="text-muted d-block mt-1">
-                          {METODOS_CONTADO.find((op) => op.valor === metodoContado).detalle}
-                        </small>
+                        {/* Solo se muestra si el método tiene una descripción (efectivo no la necesita) */}
+                        {METODOS_CONTADO.find((op) => op.valor === metodoContado).detalle && (
+                          <small className="text-muted d-block mt-1">
+                            {METODOS_CONTADO.find((op) => op.valor === metodoContado).detalle}
+                          </small>
+                        )}
                       </div>
                     ) : (
                       <div className="text-success small fw-bold mb-2">

@@ -41,7 +41,7 @@ export const obtenerFechaEntrega = (pedido) => {
     return { etiqueta: 'Entregado el', fecha: pedido.fechaEntregaReal || pedido.fechaEntrega || pedido.fecha };
   }
   return {
-    etiqueta: 'Entrega estimada',
+    etiqueta: pedido.tipoEntrega === 'Retiro en tienda' ? 'Retiro desde' : 'Entrega estimada',
     fecha: pedido.fechaEntrega || sumarDias(pedido.fecha, DIAS_ENTREGA_ESTIMADA)
   };
 };

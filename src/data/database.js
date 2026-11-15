@@ -306,7 +306,8 @@ export const createPedido = (nuevoPedido) => {
     ...nuevoPedido,
     id,
     fecha,
-    fechaEntrega: sumarDias(fecha, DIAS_ENTREGA_ESTIMADA),
+    // Si el pedido ya trae fecha (retiro en tienda: la asigna la tienda), se respeta; si no, se estima
+    fechaEntrega: nuevoPedido.fechaEntrega || sumarDias(fecha, DIAS_ENTREGA_ESTIMADA),
     historialEstados: [{ estado, fecha }]
   };
   pedidos.unshift(pedidoConId);
