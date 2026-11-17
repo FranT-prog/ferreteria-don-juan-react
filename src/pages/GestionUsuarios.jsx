@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { getCuentaCorriente, createAbono } from '../data/database';
+import CuentaCorrienteCliente from '../components/CuentaCorrienteCliente';
 
 /**
  * Componente de Página: GestionUsuarios
@@ -32,6 +34,23 @@ const GestionUsuarios = () => {
   // Estado para capturar la cadena digitada en la barra de búsqueda de usuarios
   const [busquedaUsuario, setBusquedaUsuario] = useState('');
 
+  // --- ESTADOS PARA CUENTA CORRIENTE ---
+  const [cuentaSeleccionada, setCuentaSeleccionada] = useState(null);
+
+  // --- FUNCIONES PARA CUENTA CORRIENTE ---
+  const abrirEstadoCuenta = (user) => {
+    setUsuarioActivo(user);
+    setCuentaSeleccionada(getCuentaCorriente(user)); // Calcula la deuda al instante
+  };
+
+  const manejarAbonoAdmin = (monto, metodo) => {
+    createAbono(usuarioActivo.id, monto, metodo, 'Abono en sucursal (Admin)');
+    setCuentaSeleccionada(getCuentaCorriente(usuarioActivo)); // Refresca el saldo
+  };
+
+  const cerrarEstadoCuenta = () => {
+    setCuentaSeleccionada(null);
+  };
   /**
    * Hook useEffect:
    * Se ejecuta una vez al montar el componente en el DOM.
@@ -190,6 +209,9 @@ const GestionUsuarios = () => {
                         <td className="text-center">
                           {/* Grupo de botones de acción */}
                           <div className="btn-group btn-group-sm">
+                            <button className="btn btn-outline-dark" onClick={() => abrirEstadoCuenta(usr)} title="Ver Estado de Cuenta">
+                              <i className="bi bi-wallet2"></i>
+                            </button>
                             <button className="btn btn-outline-info" onClick={() => verHistorial(usr)} title="Ver Historial">
                               <i className="bi bi-clock-history"></i>
                             </button>
@@ -303,6 +325,40 @@ const GestionUsuarios = () => {
           )}
         </div>
       )}
+      
+      {/* VISTA 4: MODAL DE ESTADO DE CUENTA (SUPERPUESTO) */}
+      {cuentaSeleccionada && (
+        <>
+          <div className="modal-backdrop fade show" style={{ zIndex: 1040 }}></div>
+          <div className="modal fade show d-block" tabIndex="-1" style={{ zIndex: 1050 }}>
+            <div className="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+              <div className="modal-content shadow">
+                <div className="modal-header bg-dark text-white">
+                  <h5 className="modal-title fw-bold">
+                    <i className="bi bi-wallet2 me-2"></i>
+                    Estado de Cuenta: {usuarioActivo?.nombre}
+                  </h5>
+                  <button type="button" className="btn-close btn-close-white" onClick={cerrarEstadoCuenta}></button>
+                </div>
+                
+                <div className="modal-body bg-light p-4">
+                  <CuentaCorrienteCliente 
+                    cuenta={cuentaSeleccionada} 
+                    onAbonar={manejarAbonoAdmin} 
+                  />
+                </div>
+                
+                <div className="modal-footer bg-white">
+                  <button type="button" className="btn btn-secondary" onClick={cerrarEstadoCuenta}>
+                    Cerrar
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
     </div>
   );
 };

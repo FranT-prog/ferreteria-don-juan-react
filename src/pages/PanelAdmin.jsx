@@ -8,11 +8,11 @@ import {
   updateEstadoPedido, 
   deletePedido 
 } from '../data/database';
-import ReportesProductos from './ReportesProductos'; 
+import ReportesProductos from './ReportesAdmin'; 
 import GestionCategorias from './GestionCategorias';
 import GestionUsuarios from './GestionUsuarios';
 import PerfilUsuario from './PerfilUsuario';
-
+import SolicitudesAdmin from './SolicitudesAdmin';
 /**
  * Componente de Página: PanelAdmin
  * 
@@ -41,6 +41,8 @@ const PanelAdmin = () => {
   const [filtroEstadoPedido, setFiltroEstadoPedido] = useState('todos');
   const [busquedaProducto, setBusquedaProducto] = useState('');
 
+  // --- ESTADO PARA SOLICITUDES ---
+  const [pendientes, setPendientes] = useState(0);
   /**
    * Hook useEffect: Se ejecuta una vez al montar el componente.
    * Invoca la función `cargarDatos` para consultar LocalStorage mediante la capa de datos (`database.js`).
@@ -56,8 +58,13 @@ const PanelAdmin = () => {
     setUsuarios(getUsuarios());
     setProductos(getProductos());
     setPedidos(getPedidos());
+  
+  // --- NUEVO: CARGAR SOLICITUDES PENDIENTES ---
+  import('../data/database').then(db => {
+      const solics = db.getSolicitudesCredito();
+      setPendientes(solics.filter(s => s.estado === 'Pendiente').length);
+    });
   };
-
   /**
    * Actualiza el estado de un pedido en la base de datos y refresca el estado local de la tabla.
    */
@@ -114,6 +121,8 @@ const PanelAdmin = () => {
   // Listas Filtradas en tiempo real para las tablas de Órdenes e Inventario
   const pedidosFiltrados = pedidos.filter(p => filtroEstadoPedido === 'todos' || p.estado === filtroEstadoPedido);
   const productosFiltrados = productos.filter(p => p.nombre.toLowerCase().includes(busquedaProducto.toLowerCase()) || p.id.toLowerCase().includes(busquedaProducto.toLowerCase()));
+
+  
 
   return (
     <div className="d-flex position-relative" style={{ minHeight: '100vh', backgroundColor: '#f4f5f7' }}>
@@ -310,6 +319,16 @@ const PanelAdmin = () => {
                   )}
                 </div>
               ))}
+            </div>
+            <div className="mt-5">
+              <h4 className="fw-bold mb-3">
+                <i className="bi bi-bell-fill text-warning me-2"></i>
+                Alertas y Solicitudes
+                {pendientes > 0 && <span className="badge bg-danger ms-2">{pendientes} Pendientes</span>}
+              </h4>
+              
+              {/* Aquí insertamos el componente de las solicitudes */}
+              <SolicitudesAdmin />
             </div>
           </div>
         )}

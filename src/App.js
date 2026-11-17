@@ -18,7 +18,7 @@ import Blog from './pages/Blog';
 import Login from './pages/Login';
 import Registro from './pages/Registro';
 import PagoRechazado from './pages/PagoRechazado';
-import ReportesProductos from './pages/ReportesProductos';
+import ReportesProductos from './pages/ReportesAdmin';
 import PerfilUsuario from './pages/PerfilUsuario';
 import PanelCliente from './pages/PanelCliente';
 

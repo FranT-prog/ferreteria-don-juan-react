@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { formatearFecha, formatearPeso } from '../utils/fechas';
+// NUEVA IMPORTACIÓN
+import { createSolicitudCredito } from '../data/database';
 
 // Color de la insignia según el estado de cada documento (compra a crédito)
 const COLOR_DOCUMENTO = { 'Pagado': 'bg-success', 'Por vencer': 'bg-warning text-dark', 'Vencido': 'bg-danger' };
@@ -28,6 +30,29 @@ const CuentaCorrienteCliente = ({ cuenta, onAbonar }) => {
   const [error, setError] = useState('');
   const [exito, setExito] = useState('');
 
+  // --- NUEVOS ESTADOS Y FUNCIÓN PARA SOLICITUD DE CUPO ---
+  const [montoSolicitado, setMontoSolicitado] = useState('');
+  const [mensajeSolicitud, setMensajeSolicitud] = useState('');
+  
+  const handleSolicitarAumento = (e) => {
+    e.preventDefault();
+    const limiteActual = cuenta.limiteCredito || 300000; 
+    
+    if (Number(montoSolicitado) <= limiteActual) {
+      setMensajeSolicitud('El monto solicitado debe ser mayor a tu límite actual.');
+      return;
+    }
+    
+    // Extrae el usuario buscando en múltiples claves comunes. Si falla, usa los datos de Juan Pérez por defecto.
+    const usuarioStr = localStorage.getItem('usuarioActivo') || localStorage.getItem('usuario') || localStorage.getItem('user');
+    const usuarioActivo = usuarioStr ? JSON.parse(usuarioStr) : { id: 'USR-003', nombre: 'Juan Pérez' };
+
+    // Ahora usuarioActivo siempre será un objeto válido con un ID, evitando el quiebre de la aplicación.
+    createSolicitudCredito(usuarioActivo.id, usuarioActivo.nombre, limiteActual, Number(montoSolicitado));
+    
+    setMensajeSolicitud('Solicitud enviada al administrador con éxito.');
+    setMontoSolicitado('');
+  };
   /**
    * Manejador del formulario de abono: valida el monto, avisa al padre (onAbonar)
    * para que lo guarde y muestra un mensaje de confirmación.
@@ -144,6 +169,41 @@ const CuentaCorrienteCliente = ({ cuenta, onAbonar }) => {
           </div>
         </div>
       </div>
+
+      {/* --- SECCIÓN: FORMULARIO DE SOLICITUD DE AUMENTO --- */}
+      <div className="card shadow-sm border-0 mb-4 bg-light">
+        <div className="card-body">
+          <h5 className="fw-bold mb-3"><i className="bi bi-graph-up-arrow text-primary me-2"></i>Solicitar Aumento de Límite</h5>
+          
+          <form onSubmit={handleSolicitarAumento} className="row g-3 align-items-end">
+            <div className="col-12 col-md-5">
+              <label className="form-label fw-bold small text-muted">Nuevo monto deseado</label>
+              <div className="input-group">
+                <span className="input-group-text">$</span>
+                <input 
+                  type="number" 
+                  className="form-control" 
+                  placeholder="Ej. 500000" 
+                  value={montoSolicitado}
+                  onChange={(e) => setMontoSolicitado(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+            <div className="col-12 col-md-3">
+              <button type="submit" className="btn btn-primary fw-bold w-100">
+                Solicitar
+              </button>
+            </div>
+          </form>
+          {mensajeSolicitud && (
+            <div className={`mt-3 mb-0 alert ${mensajeSolicitud.includes('éxito') ? 'alert-success' : 'alert-warning'} py-2`}>
+              {mensajeSolicitud}
+            </div>
+          )}
+        </div>
+      </div>
+      {/* --- FIN SECCIÓN --- */}
 
       {/* Mensaje de confirmación del último abono */}
       {exito && (

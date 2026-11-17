@@ -132,6 +132,26 @@ const Carrito = ({ onActualizarCarrito }) => {
   };
 
   /**
+   * Modifica la cantidad de un producto en el carrito respetando el stock.
+   */
+  const cambiarCantidad = (idProducto, cambio) => {
+    const nuevoCarrito = carrito.map(item => {
+      if (item.id === idProducto) {
+        const nuevaCantidad = (item.cantidad || 1) + cambio;
+        // Valida que no baje de 1 ni supere el stock disponible
+        if (nuevaCantidad >= 1 && nuevaCantidad <= item.stock) {
+          return { ...item, cantidad: nuevaCantidad };
+        }
+      }
+      return item;
+    });
+
+    setCarrito(nuevoCarrito);
+    localStorage.setItem('react_carrito', JSON.stringify(nuevoCarrito));
+    if (onActualizarCarrito) onActualizarCarrito();
+  };
+
+  /**
    * Utiliza la función de arreglo 'reduce()' para calcular la suma acumulada de los totales.
    * @returns {number} Monto total a pagar.
    */
@@ -286,9 +306,27 @@ const Carrito = ({ onActualizarCarrito }) => {
                     <div>
                       <h6 className="my-0 fw-bold">{item.nombre}</h6>
                       <small className="text-muted d-block">Cód: {item.id}</small>
-                      <small className="badge bg-light text-dark border">
-                        Cantidad: {item.cantidad || 1}
-                      </small>
+                      <div className="d-flex align-items-center mt-1">
+                        <button 
+                          type="button"
+                          className="btn btn-sm btn-outline-secondary px-2 py-0 fs-6" 
+                          onClick={() => cambiarCantidad(item.id, -1)}
+                          disabled={(item.cantidad || 1) <= 1}
+                        >
+                          -
+                        </button>
+                        
+                        <span className="mx-3 fw-bold">{item.cantidad || 1}</span>
+                        
+                        <button 
+                          type="button"
+                          className="btn btn-sm btn-outline-secondary px-2 py-0 fs-6" 
+                          onClick={() => cambiarCantidad(item.id, 1)}
+                          disabled={(item.cantidad || 1) >= item.stock}
+                        >
+                          +
+                        </button>
+                      </div> 
                     </div>
                   </div>
                   <div className="d-flex align-items-center gap-3">

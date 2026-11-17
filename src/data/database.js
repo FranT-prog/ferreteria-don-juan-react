@@ -457,3 +457,49 @@ export const getCuentaCorriente = (usuario, hoy = hoyISO()) => {
     movimientos
   };
 };
+
+// ==========================================
+// FUNCIONES CRUD: SOLICITUDES DE CRÉDITO
+// ==========================================
+
+export const getSolicitudesCredito = () => {
+  return JSON.parse(localStorage.getItem('react_solicitudes')) || [];
+};
+
+// El cliente crea una solicitud de aumento
+export const createSolicitudCredito = (usuarioId, nombre, montoActual, montoSolicitado) => {
+  const solicitudes = getSolicitudesCredito();
+  const nuevaSolicitud = {
+    id: `SOL-${String(solicitudes.length + 1).padStart(3, '0')}`,
+    usuarioId,
+    nombre,
+    montoActual,
+    montoSolicitado,
+    estado: 'Pendiente',
+    fecha: new Date().toISOString().split('T')[0]
+  };
+  solicitudes.push(nuevaSolicitud);
+  localStorage.setItem('react_solicitudes', JSON.stringify(solicitudes));
+  return nuevaSolicitud;
+};
+
+// El admin aprueba o rechaza la solicitud
+export const responderSolicitudCredito = (solicitudId, accion) => {
+  const solicitudes = getSolicitudesCredito();
+  const solicitud = solicitudes.find(s => s.id === solicitudId);
+  
+  if (solicitud && solicitud.estado === 'Pendiente') {
+    solicitud.estado = accion; // 'Aprobada' o 'Rechazada'
+    localStorage.setItem('react_solicitudes', JSON.stringify(solicitudes));
+
+    // Si el admin aprueba, le subimos el límite de crédito al usuario
+    if (accion === 'Aprobada') {
+      const usuarios = JSON.parse(localStorage.getItem('react_usuarios')) || [];
+      const userIndex = usuarios.findIndex(u => u.id === solicitud.usuarioId);
+      if (userIndex !== -1) {
+        usuarios[userIndex].limiteCredito = solicitud.montoSolicitado;
+        localStorage.setItem('react_usuarios', JSON.stringify(usuarios));
+      }
+    }
+  }
+};
