@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { formatearFecha, formatearPeso } from '../utils/fechas';
-import { createSolicitudCredito } from '../data/database';
+import SolicitudCreditoService from '../services/SolicitudCreditoService';
 import { Link } from 'react-router-dom';
 
 const COLOR_DOCUMENTO = { 'Pagado': 'bg-success', 'Por vencer': 'bg-warning text-dark', 'Vencido': 'bg-danger' };
@@ -45,7 +45,7 @@ const CuentaCorrienteCliente = ({ cuenta, onAbonar, onHabilitarCuenta}) => {
     );
   }
 
-  const handleSolicitarAumento = (e) => {
+    const handleSolicitarAumento = async (e) => {
     e.preventDefault();
     const limiteActual = cuenta.limiteCredito || 300000;
 
@@ -58,15 +58,27 @@ const CuentaCorrienteCliente = ({ cuenta, onAbonar, onHabilitarCuenta}) => {
       localStorage.getItem('react_usuario_activo') ||
       localStorage.getItem('usuarioActivo') ||
       localStorage.getItem('usuario');
-    const usuarioActivo = usuarioStr ? JSON.parse(usuarioStr) : { id: 3, nombre: 'Juan Pérez' };
+    const usuarioActivo = usuarioStr ? JSON.parse(usuarioStr) : null;
 
-    createSolicitudCredito(usuarioActivo.id, usuarioActivo.nombre, limiteActual, Number(montoSolicitado));
+    if (!usuarioActivo?.id) {
+      setMensajeSolicitud('Debes iniciar sesión para solicitar un aumento.');
+      return;
+    }
 
-    setMensajeSolicitud('Solicitud enviada al administrador con éxito.');
-    setMontoSolicitado('');
+    try {
+      // La solicitud se guarda en el backend (no en localStorage) para que el administrador la vea
+      await SolicitudCreditoService.crear({
+        usuarioId: usuarioActivo.id,
+        nombre: usuarioActivo.nombre,
+        montoSolicitado: Number(montoSolicitado)
+      });
+      setMensajeSolicitud('Solicitud enviada al administrador con éxito.');
+      setMontoSolicitado('');
+    } catch (err) {
+      setMensajeSolicitud(err.response?.data?.mensaje || 'No se pudo enviar la solicitud. Verifica que el servidor esté activo.');
+    }
   };
-
-  const handleAbonar = async (e) => {
+    const handleAbonar = async (e) => {
     e.preventDefault();
     const valor = parseInt(monto, 10);
     if (!valor || valor <= 0) {
@@ -264,6 +276,7 @@ const CuentaCorrienteCliente = ({ cuenta, onAbonar, onHabilitarCuenta}) => {
           </div>
         </div>
       )}
+      
 
       {sinMovimientos ? (
         <div className="alert alert-secondary text-center">Aún no tienes movimientos en tu cuenta corriente.</div>

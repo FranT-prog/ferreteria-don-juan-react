@@ -1,14 +1,21 @@
 import React, { useState, useEffect } from 'react';
-// Asegúrate de que esta ruta apunte correctamente a tu database.js
-import { getSolicitudesCredito, responderSolicitudCredito } from '../data/database';
+import SolicitudCreditoService from '../services/SolicitudCreditoService';
+
+// Muestra el id numérico del backend como SOL-001, SOL-002, etc.
+const formatearId = (id) => `SOL-${String(id).padStart(3, '0')}`;
 
 const SolicitudesAdmin = () => {
   const [solicitudes, setSolicitudes] = useState([]);
 
   // Función para cargar las solicitudes y poner las más recientes primero
-  const cargarSolicitudes = () => {
-    const data = getSolicitudesCredito();
-    setSolicitudes([...data].reverse()); 
+  const cargarSolicitudes = async () => {
+    try {
+      const { data } = await SolicitudCreditoService.obtenerTodas();
+      setSolicitudes([...(data || [])].reverse());
+    } catch (err) {
+      console.error('No se pudieron cargar las solicitudes:', err);
+      setSolicitudes([]);
+    }
   };
 
   useEffect(() => {
@@ -16,9 +23,14 @@ const SolicitudesAdmin = () => {
   }, []);
 
   // Función para que el admin apruebe o rechace
-  const manejarRespuesta = (id, accion) => {
+  const manejarRespuesta = async (id, accion) => {
     if (window.confirm(`¿Seguro que deseas marcar esta solicitud como ${accion}?`)) {
-      responderSolicitudCredito(id, accion);
+      try {
+        // Al aprobar, el backend sube el límite de la cuenta corriente del cliente
+        await SolicitudCreditoService.responder(id, accion);
+      } catch (err) {
+        alert(err.response?.data?.mensaje || 'No se pudo responder la solicitud.');
+      }
       cargarSolicitudes(); // Recarga la tabla para reflejar el cambio
     }
   };
@@ -52,7 +64,7 @@ const SolicitudesAdmin = () => {
               ) : (
                 solicitudes.map(s => (
                   <tr key={s.id}>
-                    <td className="fw-bold text-muted">{s.id}</td>
+                    <td className="fw-bold text-muted">{formatearId(s.id)}</td>
                     <td>{s.nombre}</td>
                     <td>${Number(s.montoActual).toLocaleString()}</td>
                     <td className="fw-bold text-primary">${Number(s.montoSolicitado).toLocaleString()}</td>

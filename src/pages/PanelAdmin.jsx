@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import UsuarioService from '../services/UsuarioService';
 import ProductoService from '../services/ProductoService';
 import PedidoService from '../services/PedidoService';
-import { getSolicitudesCredito } from '../data/database';
+import SolicitudCreditoService from '../services/SolicitudCreditoService';
 import ReportesProductos from './ReportesAdmin';
 import GestionCategorias from './GestionCategorias';
 import GestionUsuarios from './GestionUsuarios';
@@ -47,8 +47,13 @@ const PanelAdmin = () => {
       setProductosStockBajo(resStockBajo.data || []);
       setPedidos((resPedidos.data || []).sort((a, b) => (b.id || 0) - (a.id || 0)));
 
-      const solics = getSolicitudesCredito();
-      setPendientes(solics.filter(s => s.estado === 'Pendiente').length);
+      // Solicitudes de aumento de crédito pendientes (desde el backend)
+      try {
+        const { data: solics } = await SolicitudCreditoService.obtenerTodas();
+        setPendientes((solics || []).filter(s => s.estado === 'Pendiente').length);
+      } catch {
+        setPendientes(0);
+      }
     } catch (err) {
       console.error('Error al cargar datos del panel admin:', err);
       setError('No se pudieron cargar los datos desde el servidor. Verifica que Spring Boot esté ejecutándose.');
