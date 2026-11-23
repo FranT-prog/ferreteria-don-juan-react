@@ -1,96 +1,94 @@
 import React, { useState, useEffect } from 'react';
-import { getPedidos } from '../data/database';
+import ProductoService from '../services/ProductoService';
+import PedidoService from '../services/PedidoService';
 
-/**
- * Componente de Página / Submódulo: ReportesProductos
- * 
- * Descripción: Genera informes analíticos e indicadores de control de inventario y ventas.
- */
-
-// ============================================
-// FUNCIONES DE CÁLCULO (Fuera del componente)
-// ============================================
-
-// 1. Calcular los productos más vendidos
 const obtenerProductosMasVendidos = (pedidos) => {
   const ventasPorProducto = {};
 
-  pedidos.forEach(pedido => {
-    // Filtrar solo pedidos completados o enviados (opcional, ajusta según tus estados)
+  (pedidos || []).forEach(pedido => {
     if (pedido.estado !== 'Cancelado') {
-      pedido.items.forEach(item => {
-        if (ventasPorProducto[item.nombre]) {
-          ventasPorProducto[item.nombre] += item.cantidad;
-        } else {
-          ventasPorProducto[item.nombre] = item.cantidad;
-        }
+      (pedido.items || []).forEach(item => {
+        const nombre = item.producto?.nombre || item.nombre || 'Producto';
+        const cantidad = item.cantidad || 1;
+        ventasPorProducto[nombre] = (ventasPorProducto[nombre] || 0) + cantidad;
       });
     }
   });
 
-  // Convertir el objeto a un arreglo, ordenar de mayor a menor y tomar los primeros 5
   return Object.entries(ventasPorProducto)
     .map(([nombre, cantidad]) => ({ nombre, cantidad }))
     .sort((a, b) => b.cantidad - a.cantidad)
     .slice(0, 5);
 };
 
-// 2. Calcular los clientes que más compran (por monto total gastado)
 const obtenerMejoresClientes = (pedidos) => {
   const comprasPorCliente = {};
 
-  pedidos.forEach(pedido => {
+  (pedidos || []).forEach(pedido => {
     if (pedido.estado !== 'Cancelado') {
-      if (comprasPorCliente[pedido.cliente]) {
-        comprasPorCliente[pedido.cliente] += pedido.total;
-      } else {
-        comprasPorCliente[pedido.cliente] = pedido.total;
-      }
+      const nombreCliente = pedido.cliente || pedido.email || 'Cliente';
+      comprasPorCliente[nombreCliente] = (comprasPorCliente[nombreCliente] || 0) + (pedido.total || 0);
     }
   });
 
-  // Convertir a arreglo, ordenar por total gastado y tomar los primeros 5
   return Object.entries(comprasPorCliente)
     .map(([cliente, total]) => ({ cliente, total }))
     .sort((a, b) => b.total - a.total)
     .slice(0, 5);
 };
 
-
-// ============================================
-// COMPONENTE PRINCIPAL
-// ============================================
+/**
+ * Componente de Página / Submódulo: ReportesProductos
+ *
+ * Descripción: Genera reportes de inventario y ventas usando datos en tiempo real
+ * desde Spring Boot (/api/v1/productos y /api/v1/pedidos).
+ */
 const ReportesProductos = () => {
-  // Estados
   const [productos, setProductos] = useState([]);
   const [topProductos, setTopProductos] = useState([]);
   const [topClientes, setTopClientes] = useState([]);
+  const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
-    // 1. Cargamos los productos
-    const prodsGuardados = JSON.parse(localStorage.getItem('react_productos')) || [];
-    setProductos(prodsGuardados);
+    const cargarReportes = async () => {
+      try {
+        const [resProductos, resPedidos] = await Promise.all([
+          ProductoService.obtenerTodos(),
+          PedidoService.obtenerTodos()
+        ]);
 
-    // 2. Cargamos los pedidos y calculamos los tops
-    const todosLosPedidos = getPedidos();
-    setTopProductos(obtenerProductosMasVendidos(todosLosPedidos));
-    setTopClientes(obtenerMejoresClientes(todosLosPedidos));
+        setProductos(resProductos.data || []);
+        setTopProductos(obtenerProductosMasVendidos(resPedidos.data || []));
+        setTopClientes(obtenerMejoresClientes(resPedidos.data || []));
+      } catch (error) {
+        console.error('Error al cargar reportes:', error);
+      } finally {
+        setCargando(false);
+      }
+    };
+
+    cargarReportes();
   }, []);
 
-  const productosCriticos = productos.filter(p => p.stock <= 5);
+  const productosCriticos = productos.filter(p => p.stock <= (p.stockMinimo ?? 5));
+
+  if (cargando) {
+    return (
+      <div className="text-center py-5">
+        <div className="spinner-border text-primary mb-2" role="status"></div>
+        <p className="text-muted">Generando reportes desde el servidor...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="container py-4">
-      {/* Encabezado principal */}
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2 className="fw-bold"><i className="bi bi-graph-up text-primary me-2"></i>Reportes de Administración</h2>
       </div>
 
-      {/* ============================================
-          SECCIÓN NUEVA: TOP VENTAS Y MEJORES CLIENTES
-      ============================================ */}
+      {/* TOP VENTAS Y MEJORES CLIENTES */}
       <div className="row mb-5">
-        {/* Tabla de Productos Más Vendidos */}
         <div className="col-md-6 mb-4 mb-md-0">
           <div className="card shadow-sm h-100">
             <div className="card-header bg-success text-white fw-bold">
@@ -120,7 +118,6 @@ const ReportesProductos = () => {
           </div>
         </div>
 
-        {/* Tabla de Mejores Clientes */}
         <div className="col-md-6">
           <div className="card shadow-sm h-100">
             <div className="card-header bg-primary text-white fw-bold">
@@ -153,9 +150,7 @@ const ReportesProductos = () => {
         </div>
       </div>
 
-      {/* ============================================
-          SECCIÓN ORIGINAL 1: ALERTA DE PRODUCTOS CRÍTICOS (STOCK BAJO ≤ 5)
-      ============================================ */}
+      {/* ALERTA DE PRODUCTOS CRÍTICOS */}
       <div className="card shadow-sm border-danger mb-5">
         <div className="card-header bg-danger text-white fw-bold">
           <i className="bi bi-exclamation-triangle-fill me-2"></i>
@@ -169,7 +164,7 @@ const ReportesProductos = () => {
               <table className="table table-hover align-middle mb-0">
                 <thead className="table-light">
                   <tr>
-                    <th>ID</th>
+                    <th>Código</th>
                     <th>Producto</th>
                     <th>Categoría</th>
                     <th>Precio</th>
@@ -179,10 +174,10 @@ const ReportesProductos = () => {
                 <tbody>
                   {productosCriticos.map(p => (
                     <tr key={p.id}>
-                      <td>{p.id}</td>
+                      <td>{p.codigo || p.id}</td>
                       <td className="fw-bold">{p.nombre}</td>
                       <td>{p.categoria || 'Sin categoría'}</td>
-                      <td>${p.precio.toLocaleString()}</td>
+                      <td>${(p.precio || 0).toLocaleString('es-CL')}</td>
                       <td className="text-danger fw-bold fs-5">{p.stock}</td>
                     </tr>
                   ))}
@@ -193,9 +188,7 @@ const ReportesProductos = () => {
         </div>
       </div>
 
-      {/* ============================================
-          SECCIÓN ORIGINAL 2: REPORTE GENERAL Y VALORIZACIÓN
-      ============================================ */}
+      {/* REPORTE GENERAL Y VALORIZACIÓN */}
       <div className="card shadow-sm mb-4">
         <div className="card-header bg-dark text-white fw-bold">
           <i className="bi bi-box-seam me-2"></i>
@@ -206,7 +199,7 @@ const ReportesProductos = () => {
             <table className="table table-striped align-middle mb-0">
               <thead className="table-light">
                 <tr>
-                  <th>ID</th>
+                  <th>Código</th>
                   <th>Producto</th>
                   <th>Precio Unitario</th>
                   <th>Stock Total</th>
@@ -216,16 +209,16 @@ const ReportesProductos = () => {
               <tbody>
                 {productos.map(p => (
                   <tr key={p.id}>
-                    <td>{p.id}</td>
+                    <td>{p.codigo || p.id}</td>
                     <td>{p.nombre}</td>
-                    <td>${p.precio.toLocaleString()}</td>
+                    <td>${(p.precio || 0).toLocaleString('es-CL')}</td>
                     <td>
-                      <span className={`badge ${p.stock <= 5 ? 'bg-danger' : 'bg-success'}`}>
+                      <span className={`badge ${p.stock <= (p.stockMinimo ?? 5) ? 'bg-danger' : 'bg-success'}`}>
                         {p.stock} unid.
                       </span>
                     </td>
                     <td className="fw-bold text-secondary">
-                      ${(p.precio * p.stock).toLocaleString()}
+                      ${((p.precio || 0) * (p.stock || 0)).toLocaleString('es-CL')}
                     </td>
                   </tr>
                 ))}

@@ -29,3 +29,8 @@ cd ferreteria-don-juan-react
 npm install
 npm start
 Abre http://localhost:3000 en tu navegador para ver la aplicación.
+
+H2: http://localhost:8080/h2-console
+JDBC URL: jdbc:h2:mem:ferreteriabd
+
+Swagger: http://localhost:8080/swagger-ui/index.html

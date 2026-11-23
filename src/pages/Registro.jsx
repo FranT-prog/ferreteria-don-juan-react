@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { createUsuario, getUsuarios } from '../data/database';
-
+import UsuarioService from '../services/UsuarioService';
 /**
  * Componente de Página: Registro
  * 
@@ -98,29 +98,36 @@ const Registro = () => {
    * Intercepta el evento Submit, ejecuta `validarFormulario()`. Si todo es correcto, registra al usuario con rol 'Cliente',
    * guarda la sesión activa en 'localStorage' y redirige a la raíz `/`.
    */
-  const handleSubmit = (e) => {
-    e.preventDefault(); // Detiene el comportamiento de envío tradicional
+  const handleSubmit = async (e) => {
+  e.preventDefault(); // Detiene el comportamiento de envío tradicional
 
-    // Detiene el proceso si las validaciones no se cumplen
-    if (!validarFormulario()) {
-      return;
-    }
+  // Detiene el proceso si las validaciones no se cumplen
+  if (!validarFormulario()) {
+    return;
+  }
 
-    // Registrar nuevo usuario con rol 'Cliente' por defecto usando la capa centralizada database.js
-    const nuevoUsuario = createUsuario({
+  try {
+    // Registrar nuevo usuario con rol 'Cliente' en Spring Boot (H2)
+    const { data: nuevoUsuario } = await UsuarioService.registrar({
       nombre: formData.nombre.trim(),
-      email: formData.email.trim(),
+      email: formData.email.trim().toLowerCase(),
       password: formData.password,
       rol: 'Cliente',
-      estado: 'Activo'
-    });
+      activo: true
+  });
+
 
     // Iniciar sesión automáticamente tras el registro guardando el objeto en localStorage
     localStorage.setItem('react_usuario_activo', JSON.stringify(nuevoUsuario));
 
     navigate('/');
     window.location.reload(); // Para refrescar la sesión en la barra de navegación
-  };
+  
+    } catch (err) {
+    const mensaje = err.response?.data?.mensaje || 'Error al registrar el usuario en el servidor.';
+    alert(mensaje); // O usa tu estado de error si tienes uno (ej. setErrores)
+  }
+};
 
   return (
     /* Layout centrado con cuadrícula de Bootstrap */

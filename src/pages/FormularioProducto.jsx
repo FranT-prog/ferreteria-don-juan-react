@@ -1,36 +1,29 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import ProductoService from '../services/ProductoService';
 
 /**
  * Componente de Página: FormularioProducto
- * 
- * Descripción: Permite registrar y agregar un nuevo producto al catálogo de la ferretería.
- * Genera un ID automático secuencial ('PROD-001'), guarda los datos en 'localStorage' y redirige según el rol.
- * 
- * Criterios Evaluados Aplicados:
- * 1. Formulario Controlado y Manejo de Estado (useState): Administra el objeto compuesto `producto` sincronizando cada input mediante `onChange`.
- * 2. Manipulación de Datos en JS (LocalStorage & JSON): Lee la colección existente, calcula el nuevo ID secuencial y guarda los cambios parseados a JSON.
- * 3. Componentes y Controles de Bootstrap: Tarjeta contenedora (`card`), layout de cuadrícula (`row`, `col-md-*`), controles estilizados (`form-control`, `form-select`) y botones.
+ *
+ * Descripción: Registra un nuevo producto en la base de datos H2 mediante
+ * POST /api/v1/productos y redirige según el rol activo.
  */
 const FormularioProducto = () => {
-  // Hook useNavigate para redirección programática tras guardar el registro
   const navigate = useNavigate();
 
-  // Estado compuesto (objeto) para capturar los datos ingresados en el formulario de creación
   const [producto, setProducto] = useState({
+    codigo: '',
     nombre: '',
     categoria: 'Herramientas Manuales',
     precio: '',
     stock: '',
+    stockMinimo: 5,
     imagen: '',
-    descripcion: '' // Nuevo campo de ficha técnica
+    descripcion: ''
   });
+  const [guardando, setGuardando] = useState(false);
+  const [error, setError] = useState('');
 
-  /**
-   * Manejador de Cambios Unificado (handleChange):
-   * Utiliza la sintaxis de propiedades computadas `[e.target.name]` para actualizar dinámicamente
-   * únicamente la clave correspondiente del objeto 'producto'.
-   */
   const handleChange = (e) => {
     setProducto({
       ...producto,
@@ -38,72 +31,79 @@ const FormularioProducto = () => {
     });
   };
 
-  /**
-   * Manejador del Envío del Formulario (handleSubmit):
-   * Intercepta el evento Submit, genera una clave ID secuencial (`PROD-XXX`),
-   * convierte precio y stock a valores numéricos, agrega el ítem a 'localStorage' y redirige según el rol.
-   */
-  const handleSubmit = (e) => {
-    e.preventDefault(); // Detiene la recarga por defecto del formulario HTML
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setGuardando(true);
 
-    // Obtención de la lista previa de productos o inicialización con arreglo vacío
-    const productosGuardados = JSON.parse(localStorage.getItem('react_productos')) || [];
-    
-    // Generación de ID dinámico secuencial formateado a 3 dígitos (Ej: PROD-006)
-    const nuevoId = `PROD-${String(productosGuardados.length + 1).padStart(3, '0')}`;
-
-    // Construcción del nuevo objeto asegurando el tipo numérico para precio y stock
     const nuevoProducto = {
-      ...producto,
-      id: nuevoId,
+      codigo: producto.codigo.trim() || `PROD-${Date.now().toString().slice(-4)}`,
+      nombre: producto.nombre.trim(),
+      categoria: producto.categoria,
       precio: Number(producto.precio),
-      stock: Number(producto.stock)
+      stock: Number(producto.stock),
+      stockMinimo: Number(producto.stockMinimo) || 5,
+      imagen: producto.imagen.trim(),
+      descripcion: producto.descripcion.trim()
     };
 
-    // Agrega el nuevo producto al arreglo y lo almacena en LocalStorage
-    productosGuardados.push(nuevoProducto);
-    localStorage.setItem('react_productos', JSON.stringify(productosGuardados));
+    try {
+      await ProductoService.crear(nuevoProducto);
 
-    // Redireccionar según la ruta de origen o rol activo del usuario
-    const usuarioActivo = JSON.parse(localStorage.getItem('react_usuario_activo'));
-    if (usuarioActivo?.rol === 'Vendedor') {
-      navigate('/vendedor');
-    } else {
-      navigate('/admin');
+      const usuarioActivo = JSON.parse(localStorage.getItem('react_usuario_activo'));
+      if (usuarioActivo?.rol === 'Vendedor') {
+        navigate('/vendedor');
+      } else {
+        navigate('/admin');
+      }
+    } catch (err) {
+      console.error('Error al crear producto:', err);
+      setError('No se pudo guardar el producto en el servidor.');
+    } finally {
+      setGuardando(false);
     }
   };
 
   return (
-    /* Layout de cuadrícula responsivo centrado con Bootstrap */
     <div className="row justify-content-center">
       <div className="col-md-8">
-        {/* Tarjeta contenedora sin bordes y con sombra suave */}
         <div className="card shadow-sm border-0 mt-3">
-          {/* Cabecera de la tarjeta con estilo oscuro e icono */}
           <div className="card-header bg-dark text-white p-3">
             <h5 className="mb-0 fw-bold"><i className="bi bi-box-seam me-2"></i>Agregar Nuevo Producto</h5>
           </div>
-          
+
           <div className="card-body p-4">
-            {/* Formulario conectado a la función handleSubmit */}
+            {error && <div className="alert alert-danger py-2">{error}</div>}
+
             <form onSubmit={handleSubmit}>
-              {/* Campo Nombre del Producto */}
-              <div className="mb-3">
-                <label className="form-label fw-bold">Nombre del Producto</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  name="nombre"
-                  value={producto.nombre}
-                  onChange={handleChange}
-                  required
-                  placeholder="Ej. Taladro Percutor 750W"
-                />
+              <div className="row mb-3">
+                <div className="col-md-4">
+                  <label className="form-label fw-bold">Código</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    name="codigo"
+                    value={producto.codigo}
+                    onChange={handleChange}
+                    placeholder="Ej. HER-010"
+                  />
+                </div>
+                <div className="col-md-8">
+                  <label className="form-label fw-bold">Nombre del Producto</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    name="nombre"
+                    value={producto.nombre}
+                    onChange={handleChange}
+                    required
+                    placeholder="Ej. Taladro Percutor 750W"
+                  />
+                </div>
               </div>
 
-              {/* Fila de Categoría, Precio y Stock Inicial */}
               <div className="row mb-3">
-                <div className="col-md-6">
+                <div className="col-md-4">
                   <label className="form-label fw-bold">Categoría</label>
                   <select
                     className="form-select"
@@ -142,22 +142,31 @@ const FormularioProducto = () => {
                     min="0"
                   />
                 </div>
+                <div className="col-md-2">
+                  <label className="form-label fw-bold">Stock Mín.</label>
+                  <input
+                    type="number"
+                    className="form-control"
+                    name="stockMinimo"
+                    value={producto.stockMinimo}
+                    onChange={handleChange}
+                    min="0"
+                  />
+                </div>
               </div>
 
-              {/* Campo URL de la Imagen */}
               <div className="mb-3">
-                <label className="form-label fw-bold">URL de la Imagen</label>
+                <label className="form-label fw-bold">URL o Ruta de la Imagen</label>
                 <input
-                  type="url"
+                  type="text"
                   className="form-control"
                   name="imagen"
                   value={producto.imagen}
                   onChange={handleChange}
-                  placeholder="https://ejemplo.com/imagen.jpg"
+                  placeholder="/llave_ajustable.jpg o https://ejemplo.com/imagen.jpg"
                 />
               </div>
 
-              {/* CAMPO DE DESCRIPCIÓN */}
               <div className="mb-4">
                 <label className="form-label fw-bold">Descripción del Producto</label>
                 <textarea
@@ -171,10 +180,11 @@ const FormularioProducto = () => {
                 ></textarea>
               </div>
 
-              {/* Botones de Acción (Cancelar y Guardar) */}
               <div className="d-flex justify-content-end gap-2">
                 <Link to="/admin" className="btn btn-secondary">Cancelar</Link>
-                <button type="submit" className="btn btn-dark fw-bold">Guardar Producto</button>
+                <button type="submit" className="btn btn-dark fw-bold" disabled={guardando}>
+                  {guardando ? 'Guardando...' : 'Guardar Producto'}
+                </button>
               </div>
             </form>
           </div>

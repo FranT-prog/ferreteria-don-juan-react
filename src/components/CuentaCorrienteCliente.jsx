@@ -1,63 +1,72 @@
 import React, { useState } from 'react';
 import { formatearFecha, formatearPeso } from '../utils/fechas';
-// NUEVA IMPORTACIÓN
 import { createSolicitudCredito } from '../data/database';
+import { Link } from 'react-router-dom';
 
-// Color de la insignia según el estado de cada documento (compra a crédito)
 const COLOR_DOCUMENTO = { 'Pagado': 'bg-success', 'Por vencer': 'bg-warning text-dark', 'Vencido': 'bg-danger' };
 
 /**
  * Componente Funcional: CuentaCorrienteCliente
  *
- * Descripción: Presenta la cuenta corriente del cliente: saldo pendiente, crédito disponible, límite,
- * saldo vencido, uso de la línea de crédito, formulario de abono, documentos (compras a crédito)
- * y libro de movimientos.
- *
- * Props Recibidas:
- * @param {Object} cuenta - Resultado de getCuentaCorriente() en database.js.
- * @param {Function} onAbonar - Callback (monto, metodo) que registra el abono en la capa de datos.
- *
- * Criterios Evaluados Aplicados:
- * 1. Comunicación mediante Props: los cálculos vienen resueltos desde la capa de datos y el abono se delega al padre por callback.
- * 2. Renderizado condicional: alertas y colores distintos según haya deuda vencida, por vencer o esté al día.
- * 3. Manejo de estado y formularios (useState): monto, medio de pago y mensajes de error/éxito.
- * 4. Componentes de Bootstrap: cards de indicadores, progress bar, alerts, badges y table-responsive.
+ * Descripción: Presenta la cuenta corriente del cliente obtenida desde Spring Boot
+ * y permite registrar abonos contra el endpoint PUT /api/v1/cuentas-corrientes/:id/abonar.
  */
-const CuentaCorrienteCliente = ({ cuenta, onAbonar }) => {
-  // Estados del formulario de abono
+const CuentaCorrienteCliente = ({ cuenta, onAbonar, onHabilitarCuenta}) => {
   const [monto, setMonto] = useState('');
   const [metodo, setMetodo] = useState('Transferencia');
   const [error, setError] = useState('');
   const [exito, setExito] = useState('');
+  const [abonando, setAbonando] = useState(false);
 
-  // --- NUEVOS ESTADOS Y FUNCIÓN PARA SOLICITUD DE CUPO ---
   const [montoSolicitado, setMontoSolicitado] = useState('');
   const [mensajeSolicitud, setMensajeSolicitud] = useState('');
-  
+
+  if (!cuenta) {
+    return (
+      <div className="alert alert-info text-center py-4 shadow-sm">
+        <h5 className="fw-bold">Aún no tienes una cuenta corriente habilitada</h5>
+        <p className="mb-3 text-muted">
+          Contacta a la administración de <strong>Ferretería Don Juan</strong> para solicitar tu línea de crédito.
+        </p>
+        {onHabilitarCuenta ? (
+          <button
+            type="button"
+            className="btn btn-success fw-bold"
+            onClick={onHabilitarCuenta}
+          >
+            <i className="bi bi-plus-circle me-2"></i>Habilitar Cuenta Corriente ($300.000)
+          </button>
+        ) : (
+          <Link to="/contacto" className="btn btn-warning fw-bold text-dark">
+            <i className="bi bi-envelope-fill me-2"></i>Solicitar Cuenta Corriente
+          </Link>
+        )}
+      </div>
+    );
+  }
+
   const handleSolicitarAumento = (e) => {
     e.preventDefault();
-    const limiteActual = cuenta.limiteCredito || 300000; 
-    
+    const limiteActual = cuenta.limiteCredito || 300000;
+
     if (Number(montoSolicitado) <= limiteActual) {
       setMensajeSolicitud('El monto solicitado debe ser mayor a tu límite actual.');
       return;
     }
-    
-    // Extrae el usuario buscando en múltiples claves comunes. Si falla, usa los datos de Juan Pérez por defecto.
-    const usuarioStr = localStorage.getItem('usuarioActivo') || localStorage.getItem('usuario') || localStorage.getItem('user');
-    const usuarioActivo = usuarioStr ? JSON.parse(usuarioStr) : { id: 'USR-003', nombre: 'Juan Pérez' };
 
-    // Ahora usuarioActivo siempre será un objeto válido con un ID, evitando el quiebre de la aplicación.
+    const usuarioStr =
+      localStorage.getItem('react_usuario_activo') ||
+      localStorage.getItem('usuarioActivo') ||
+      localStorage.getItem('usuario');
+    const usuarioActivo = usuarioStr ? JSON.parse(usuarioStr) : { id: 3, nombre: 'Juan Pérez' };
+
     createSolicitudCredito(usuarioActivo.id, usuarioActivo.nombre, limiteActual, Number(montoSolicitado));
-    
+
     setMensajeSolicitud('Solicitud enviada al administrador con éxito.');
     setMontoSolicitado('');
   };
-  /**
-   * Manejador del formulario de abono: valida el monto, avisa al padre (onAbonar)
-   * para que lo guarde y muestra un mensaje de confirmación.
-   */
-  const handleAbonar = (e) => {
+
+  const handleAbonar = async (e) => {
     e.preventDefault();
     const valor = parseInt(monto, 10);
     if (!valor || valor <= 0) {
@@ -70,20 +79,26 @@ const CuentaCorrienteCliente = ({ cuenta, onAbonar }) => {
       setExito('');
       return;
     }
-    if (onAbonar) onAbonar(valor, metodo);
-    setMonto('');
-    setError('');
-    setExito(`Abono de ${formatearPeso(valor)} registrado correctamente.`);
+
+    try {
+      setAbonando(true);
+      if (onAbonar) await onAbonar(valor, metodo);
+      setMonto('');
+      setError('');
+      setExito(`Abono de ${formatearPeso(valor)} registrado correctamente.`);
+    } catch (err) {
+      setError('No se pudo registrar el abono en el servidor. Intenta nuevamente.');
+      setExito('');
+    } finally {
+      setAbonando(false);
+    }
   };
 
-  const sinMovimientos = cuenta.movimientos.length === 0;
-
-  // Color de la barra de uso del crédito: verde (<60%), amarillo (<85%), rojo (>=85%)
+  const sinMovimientos = (cuenta.movimientos || []).length === 0;
   const colorBarra = cuenta.porcentajeUso >= 85 ? 'bg-danger' : cuenta.porcentajeUso >= 60 ? 'bg-warning' : 'bg-success';
 
   return (
     <div>
-      {/* Mensaje principal según la situación de la cuenta */}
       {cuenta.saldoVencido > 0 ? (
         <div className="alert alert-danger d-flex align-items-center" role="alert">
           <i className="bi bi-exclamation-triangle-fill fs-4 me-3"></i>
@@ -170,20 +185,20 @@ const CuentaCorrienteCliente = ({ cuenta, onAbonar }) => {
         </div>
       </div>
 
-      {/* --- SECCIÓN: FORMULARIO DE SOLICITUD DE AUMENTO --- */}
+      {/* Formulario de solicitud de aumento */}
       <div className="card shadow-sm border-0 mb-4 bg-light">
         <div className="card-body">
           <h5 className="fw-bold mb-3"><i className="bi bi-graph-up-arrow text-primary me-2"></i>Solicitar Aumento de Límite</h5>
-          
+
           <form onSubmit={handleSolicitarAumento} className="row g-3 align-items-end">
             <div className="col-12 col-md-5">
               <label className="form-label fw-bold small text-muted">Nuevo monto deseado</label>
               <div className="input-group">
                 <span className="input-group-text">$</span>
-                <input 
-                  type="number" 
-                  className="form-control" 
-                  placeholder="Ej. 500000" 
+                <input
+                  type="number"
+                  className="form-control"
+                  placeholder="Ej. 500000"
                   value={montoSolicitado}
                   onChange={(e) => setMontoSolicitado(e.target.value)}
                   required
@@ -203,9 +218,7 @@ const CuentaCorrienteCliente = ({ cuenta, onAbonar }) => {
           )}
         </div>
       </div>
-      {/* --- FIN SECCIÓN --- */}
 
-      {/* Mensaje de confirmación del último abono */}
       {exito && (
         <div className="alert alert-success d-flex align-items-center" role="alert">
           <i className="bi bi-check-circle-fill fs-4 me-3"></i>
@@ -213,7 +226,7 @@ const CuentaCorrienteCliente = ({ cuenta, onAbonar }) => {
         </div>
       )}
 
-      {/* Formulario para abonar: solo si hay saldo pendiente */}
+      {/* Formulario para abonar */}
       {cuenta.saldoPendiente > 0 && (
         <div className="card shadow-sm border-0 mb-4">
           <div className="card-body">
@@ -233,7 +246,6 @@ const CuentaCorrienteCliente = ({ cuenta, onAbonar }) => {
               </div>
               <div className="col-12 col-md-4">
                 <label className="form-label fw-bold small text-muted">Medio de pago</label>
-                {/* Este es el <select> de medios de pago del abono */}
                 <select className="form-select" value={metodo} onChange={(e) => setMetodo(e.target.value)}>
                   <option value="Transferencia">Transferencia</option>
                   <option value="Tarjeta de crédito">Tarjeta de crédito</option>
@@ -241,13 +253,13 @@ const CuentaCorrienteCliente = ({ cuenta, onAbonar }) => {
                 </select>
               </div>
               <div className="col-12 col-md-3">
-                <button type="submit" className="btn btn-success fw-bold w-100">
-                  <i className="bi bi-check2-circle me-2"></i>Abonar
+                <button type="submit" className="btn btn-success fw-bold w-100" disabled={abonando}>
+                  <i className="bi bi-check2-circle me-2"></i>{abonando ? 'Abonando...' : 'Abonar'}
                 </button>
               </div>
             </form>
             <small className="text-muted d-block mt-2">
-              Puedes abonar hasta tu saldo pendiente. Los abonos pagan primero las compras más antiguas.
+              Puedes abonar hasta tu saldo pendiente. El abono actualiza tu saldo y crédito disponible en el servidor.
             </small>
           </div>
         </div>
@@ -257,7 +269,6 @@ const CuentaCorrienteCliente = ({ cuenta, onAbonar }) => {
         <div className="alert alert-secondary text-center">Aún no tienes movimientos en tu cuenta corriente.</div>
       ) : (
         <>
-          {/* Documentos: cada compra a crédito con su estado de pago */}
           <h5 className="fw-bold mb-3"><i className="bi bi-file-earmark-text me-2"></i>Documentos</h5>
           <div className="card shadow-sm border-0 mb-4">
             <div className="table-responsive">
@@ -280,7 +291,9 @@ const CuentaCorrienteCliente = ({ cuenta, onAbonar }) => {
                       <td>{formatearFecha(d.vencimiento)}</td>
                       <td className="text-end">{formatearPeso(d.monto)}</td>
                       <td className="text-end fw-bold">{formatearPeso(d.pendiente)}</td>
-                      <td className="text-center"><span className={`badge ${COLOR_DOCUMENTO[d.estado]}`}>{d.estado}</span></td>
+                      <td className="text-center">
+                        <span className={`badge ${COLOR_DOCUMENTO[d.estado]}`}>{d.estado}</span>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -288,7 +301,6 @@ const CuentaCorrienteCliente = ({ cuenta, onAbonar }) => {
             </div>
           </div>
 
-          {/* Libro de movimientos con saldo acumulado (más reciente primero) */}
           <h5 className="fw-bold mb-3"><i className="bi bi-journal-text me-2"></i>Movimientos</h5>
           <div className="card shadow-sm border-0">
             <div className="table-responsive">

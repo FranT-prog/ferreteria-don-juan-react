@@ -3,16 +3,10 @@ import React, { useState } from 'react';
 /**
  * Componente de Página: Contacto
  * 
- * Descripción: Formulario de contacto e información de atención al cliente de la ferretería.
- * Permite capturar datos, validarlos dinámicamente, desplegar alertas de error/éxito y reiniciar los campos.
- * 
- * Criterios Evaluados Aplicados:
- * 1. Manejo de Estado (useState): Captura el estado multi-campo del formulario (`formData`), mensajes de error (`errores`) y confirmación de envío (`enviado`).
- * 2. Componentes y Controles de Formulario de Bootstrap: Uso de controles estilizados (`form-control`, `form-select`), tarjetas (`card`), alertas (`alert alert-danger`, `alert alert-success`) y grilla responsiva (`col-12 col-md-7` / `col-12 col-md-5`).
- * 3. Manejo de Eventos y Manejo del DOM: Intercepción del evento `onSubmit` con `e.preventDefault()` y manejo unificado con `onChange`.
+ * Descripción: Formulario de contacto, información de atención al cliente
+ * y mapa con la ubicación de la ferretería en La Serena.
  */
 const Contacto = () => {
-  // Estado compuesto (objeto) para almacenar la información digitada en cada input del formulario
   const [formData, setFormData] = useState({
     nombre: '',
     email: '',
@@ -21,17 +15,9 @@ const Contacto = () => {
     mensaje: ''
   });
 
-  // Estado local para almacenar la lista de mensajes de error generados durante la validación
   const [errores, setErrores] = useState([]);
-
-  // Estado booleano para controlar la visibilidad de la alerta de éxito al enviar el mensaje
   const [enviado, setEnviado] = useState(false);
 
-  /**
-   * Manejador de Cambios Unificado (handleChange):
-   * Utiliza la sintaxis de propiedades computadas `[e.target.name]` para actualizar dinámicamente
-   * únicamente el campo correspondiente dentro del objeto `formData` sin perder el resto de los valores.
-   */
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -39,16 +25,10 @@ const Contacto = () => {
     });
   };
 
-  /**
-   * Función de Validación y Envío del Formulario:
-   * Evita la recarga por defecto con `e.preventDefault()`, evalúa que los campos no estén vacíos
-   * y que el correo contenga caracteres de estructura básica ('@' y '.'). Si es válido, simula el envío y resetea el formulario.
-   */
   const validarFormulario = (e) => {
-    e.preventDefault(); // Detiene la recarga de página del evento Submit de HTML
+    e.preventDefault();
     const nuevosErrores = [];
 
-    // Validaciones campo por campo
     if (!formData.nombre.trim()) {
       nuevosErrores.push('El nombre completo es obligatorio.');
     }
@@ -69,7 +49,6 @@ const Contacto = () => {
 
     setErrores(nuevosErrores);
 
-    // Si no existen errores de validación, activa la confirmación de éxito y resetea los campos tras un timeout
     if (nuevosErrores.length === 0) {
       setEnviado(true);
       setTimeout(() => {
@@ -85,10 +64,6 @@ const Contacto = () => {
     }
   };
 
-  /**
-   * Función para Limpiar el Formulario:
-   * Reinicia los estados a sus valores vacíos iniciales y borra las alertas activas.
-   */
   const limpiarFormulario = () => {
     setFormData({
       nombre: '',
@@ -103,9 +78,7 @@ const Contacto = () => {
 
   return (
     <>
-      {/* ============================================
-          BANNER DE CONTACTO (Estilizado con degradado CSS y Bootstrap)
-      ============================================ */}
+      {/* BANNER DE CONTACTO */}
       <section
         className="text-white text-center py-5 mb-5 rounded"
         style={{
@@ -123,11 +96,9 @@ const Contacto = () => {
         </div>
       </section>
 
-      {/* Grilla principal de 2 columnas (Formulario a la izquierda e Información a la derecha) */}
+      {/* Grilla principal de 2 columnas */}
       <div className="row g-4 mb-5">
-        {/* ============================================
-            COLUMNA IZQUIERDA: FORMULARIO DE CONTACTO
-        ============================================ */}
+        {/* COLUMNA IZQUIERDA: FORMULARIO */}
         <div className="col-12 col-md-7">
           <div className="card border-0 shadow-sm">
             <div className="card-body p-4">
@@ -136,9 +107,7 @@ const Contacto = () => {
                 Envíanos un Mensaje
               </h3>
 
-              {/* Formulario vinculado a la función de validación 'validarFormulario' */}
               <form onSubmit={validarFormulario}>
-                {/* Campo Nombre Completo */}
                 <div className="mb-3">
                   <label className="form-label fw-bold">
                     <i className="bi bi-person-fill text-warning me-1"></i>
@@ -154,7 +123,6 @@ const Contacto = () => {
                   />
                 </div>
 
-                {/* Campo Correo Electrónico */}
                 <div className="mb-3">
                   <label className="form-label fw-bold">
                     <i className="bi bi-envelope-fill text-warning me-1"></i>
@@ -170,7 +138,6 @@ const Contacto = () => {
                   />
                 </div>
 
-                {/* Campo Teléfono de Contacto */}
                 <div className="mb-3">
                   <label className="form-label fw-bold">
                     <i className="bi bi-telephone-fill text-warning me-1"></i>
@@ -186,7 +153,6 @@ const Contacto = () => {
                   />
                 </div>
 
-                {/* Campo Selección de Asunto / Motivo */}
                 <div className="mb-3">
                   <label className="form-label fw-bold">
                     <i className="bi bi-tag-fill text-warning me-1"></i>
@@ -206,7 +172,6 @@ const Contacto = () => {
                   </select>
                 </div>
 
-                {/* Campo Área de Texto para el Mensaje */}
                 <div className="mb-3">
                   <label className="form-label fw-bold">
                     <i className="bi bi-chat-left-text-fill text-warning me-1"></i>
@@ -222,7 +187,6 @@ const Contacto = () => {
                   ></textarea>
                 </div>
 
-                {/* Renderizado Condicional: Muestra la caja de alerta roja si existen errores de validación */}
                 {errores.length > 0 && (
                   <div className="alert alert-danger">
                     <strong>
@@ -237,7 +201,6 @@ const Contacto = () => {
                   </div>
                 )}
 
-                {/* Renderizado Condicional: Alerta verde de confirmación tras envío exitoso */}
                 {enviado && (
                   <div className="alert alert-success">
                     <i className="bi bi-check-circle-fill me-2"></i>
@@ -245,7 +208,6 @@ const Contacto = () => {
                   </div>
                 )}
 
-                {/* Botones de Acción (Enviar y Limpiar) */}
                 <div className="d-flex gap-3 flex-wrap">
                   <button type="submit" className="btn btn-warning fw-bold px-4">
                     <i className="bi bi-send-fill me-2"></i>Enviar Mensaje
@@ -263,11 +225,8 @@ const Contacto = () => {
           </div>
         </div>
 
-        {/* ============================================
-            COLUMNA DERECHA: INFORMACIÓN DE CONTACTO Y REDES
-        ============================================ */}
+        {/* COLUMNA DERECHA: INFORMACIÓN Y REDES */}
         <div className="col-12 col-md-5">
-          {/* Tarjeta de Información Sucursal y Horarios */}
           <div className="card border-0 shadow-sm mb-4">
             <div className="card-body p-4">
               <h4 className="fw-bold mb-4">
@@ -315,7 +274,6 @@ const Contacto = () => {
             </div>
           </div>
 
-          {/* Tarjeta de Redes Sociales con gradiente personalizado */}
           <div className="card border-0 shadow-sm" style={{ background: 'linear-gradient(135deg, #D84315 0%, #fd7e14 100%)' }}>
             <div className="card-body p-4 text-white text-center">
               <h5 className="fw-bold mb-3">Síguenos</h5>
@@ -326,6 +284,35 @@ const Contacto = () => {
                 <a href="#whatsapp" className="text-white"><i className="bi bi-whatsapp"></i></a>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* MAPA DE UBICACIÓN Y COBERTURA (Google Maps sin librerías externas) */}
+      <div className="card border-0 shadow-sm mb-5">
+        <div className="card-body p-4">
+          <div className="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+            <div>
+              <h4 className="fw-bold mb-1">
+                <i className="bi bi-geo-alt-fill text-warning me-2"></i>
+                Nuestra Ubicación y Zona de Despacho
+              </h4>
+              <p className="text-muted small mb-0">
+                Av. Francisco de Aguirre 450, La Serena — Despacho a domicilio en toda la conurbación La Serena / Coquimbo.
+              </p>
+            </div>
+            <span className="badge bg-warning text-dark px-3 py-2">
+              <i className="bi bi-truck me-1"></i>Despacho en La Serena
+            </span>
+          </div>
+          <div className="ratio ratio-21x9 rounded overflow-hidden">
+            <iframe
+              title="Ubicación Ferretería La Serena"
+              src="https://www.google.com/maps?q=Av.+Francisco+de+Aguirre+450,+La+Serena,+Chile&output=embed"
+              style={{ border: 0 }}
+              allowFullScreen
+              loading="lazy"
+            ></iframe>
           </div>
         </div>
       </div>

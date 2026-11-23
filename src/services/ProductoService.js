@@ -1,25 +1,29 @@
 import api from './api';
 
 class ProductoService {
-    obtenerTodos() {
-        return api.get('/productos');
-    }
+  obtenerTodos() {
+    return api.get('/productos');
+  }
 
-    obtenerPorId(id) {
-        return api.get(`/productos/${id}`);
-    }
+  obtenerPorId(id) {
+    return api.get(`/productos/${id}`);
+  }
 
-    crear(producto) {
-        return api.post('/productos', producto);
-    }
+  obtenerStockBajo() {
+    return api.get('/productos/stock-bajo');
+  }
 
-    actualizar(id, producto) {
-        return api.put(`/productos/${id}`, producto);
-    }
+  crear(producto) {
+    return api.post('/productos', producto);
+  }
 
-    eliminar(id) {
-        return api.delete(`/productos/${id}`);
-    }
+  actualizar(id, producto) {
+    return api.put(`/productos/${id}`, producto);
+  }
+
+  eliminar(id) {
+    return api.delete(`/productos/${id}`);
+  }
 }
 
 export default new ProductoService();

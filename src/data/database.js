@@ -128,7 +128,7 @@ const inicializarBD = () => {
 };
 
 // Ejecuación automática al cargar el módulo
-inicializarBD();
+// inicializarBD();
 
 /**
  * Datos de demostración para el cliente de ejemplo (cliente@gmail.com):
@@ -202,7 +202,7 @@ const sembrarDatosDemoCliente = () => {
   localStorage.setItem('react_demo_cliente_v1', 'true');
 };
 
-sembrarDatosDemoCliente();
+// sembrarDatosDemoCliente();
 
 // ==========================================
 // FUNCIONES CRUD: PRODUCTOS

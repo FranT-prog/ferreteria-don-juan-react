@@ -12,7 +12,6 @@ const Navbar = ({ contadorCarrito, usuarioActivo, onLogout }) => {
   return (
     <nav className="navbar navbar-expand-lg navbar-dark shadow-sm sticky-top" style={{ backgroundColor: '#fd7e14' }}>
       <div className="container">
-        {/* Brand / Logotipo con ícono destacado */}
         <Link className="navbar-brand fw-bold text-white fs-4 d-flex align-items-center" to="/">
           <span className="bg-dark text-warning rounded-circle d-inline-flex align-items-center justify-content-center me-2 shadow-sm" style={{ width: '38px', height: '38px' }}>
             <i className="bi bi-tools fs-6"></i>
@@ -20,7 +19,7 @@ const Navbar = ({ contadorCarrito, usuarioActivo, onLogout }) => {
           Ferretería Don Juan
         </Link>
 
-        {/* Sección del Carrito (Siempre visible, estilizado en negro para máximo contraste) */}
+        {/* Carrito */}
         <div className="d-flex align-items-center gap-2 order-lg-2 ms-auto me-2 me-lg-0">
           <Link to="/carrito" className="btn btn-dark btn-sm fw-bold px-3 rounded-pill shadow-sm position-relative">
             <i className="bi bi-cart-fill text-warning"></i>
@@ -33,11 +32,11 @@ const Navbar = ({ contadorCarrito, usuarioActivo, onLogout }) => {
           </Link>
         </div>
 
-        {/* Botón Toggler para dispositivos móviles */}
-        <button 
-          className="navbar-toggler order-lg-3" 
-          type="button" 
-          data-bs-toggle="collapse" 
+        {/* Botón Toggler móvil */}
+        <button
+          className="navbar-toggler order-lg-3"
+          type="button"
+          data-bs-toggle="collapse"
           data-bs-target="#navbarNav"
           aria-controls="navbarNav"
           aria-expanded="false"
@@ -46,7 +45,7 @@ const Navbar = ({ contadorCarrito, usuarioActivo, onLogout }) => {
           <span className="navbar-toggler-icon"></span>
         </button>
 
-        {/* Contenido colapsable */}
+        {/* Enlaces */}
         <div className="collapse navbar-collapse order-lg-1" id="navbarNav">
           <ul className="navbar-nav me-auto mb-2 mb-lg-0">
             <li className="nav-item">
@@ -62,7 +61,7 @@ const Navbar = ({ contadorCarrito, usuarioActivo, onLogout }) => {
               <NavLink className={({ isActive }) => `nav-link ${isActive ? 'active fw-bold' : ''}`} to="/blog">Blog & Tips</NavLink>
             </li>
 
-            {/* Enlaces por rol (en blanco para buena legibilidad sobre fondo naranjo) */}
+            {/* Enlaces exclusivos por rol */}
             {usuarioActivo?.rol === 'Cliente' && (
               <li className="nav-item">
                 <NavLink className={({ isActive }) => `nav-link text-white ${isActive ? 'active fw-bold text-decoration-underline' : ''}`} to="/mi-cuenta">
@@ -87,16 +86,18 @@ const Navbar = ({ contadorCarrito, usuarioActivo, onLogout }) => {
               </li>
             )}
 
-            {/* Opciones de Perfil / Login para vista Móvil */}
+            {/* Opciones de Perfil / Login Móvil */}
             <li className="nav-item d-lg-none mt-2">
               {usuarioActivo ? (
                 <div className="d-flex flex-column gap-2">
                   <Link to="/perfil" className="btn btn-outline-light btn-sm w-100 text-start">
                     <i className="bi bi-person-gear me-2"></i>Mi Perfil
                   </Link>
-                  <Link to="/mi-cuenta" className="btn btn-outline-light btn-sm w-100 text-start">
-                    <i className="bi bi-bag-check me-2"></i>Mis Pedidos y Cuenta
-                  </Link>
+                  {usuarioActivo.rol !== 'Vendedor' && (
+                    <Link to="/mi-cuenta" className="btn btn-outline-light btn-sm w-100 text-start">
+                      <i className="bi bi-bag-check me-2"></i>Mis Pedidos y Cuenta
+                    </Link>
+                  )}
                   <button className="btn btn-dark btn-sm w-100 text-start" onClick={handleLogout}>
                     <i className="bi bi-box-arrow-right me-2"></i>Cerrar Sesión ({usuarioActivo.nombre})
                   </button>
@@ -114,7 +115,7 @@ const Navbar = ({ contadorCarrito, usuarioActivo, onLogout }) => {
             </li>
           </ul>
 
-          {/* Opciones de Perfil / Login para vista Escritorio */}
+          {/* Opciones de Perfil / Login Escritorio */}
           <div className="d-none d-lg-flex align-items-center gap-2 me-2">
             {usuarioActivo ? (
               <div className="dropdown">
@@ -129,11 +130,13 @@ const Navbar = ({ contadorCarrito, usuarioActivo, onLogout }) => {
                       <i className="bi bi-person-gear me-2"></i> Mi Perfil
                     </Link>
                   </li>
-                  <li>
-                    <Link to="/mi-cuenta" className="dropdown-item">
-                      <i className="bi bi-bag-check me-2"></i> Mis Pedidos y Cuenta
-                    </Link>
-                  </li>
+                  {usuarioActivo.rol !== 'Vendedor' && (
+                    <li>
+                      <Link to="/mi-cuenta" className="dropdown-item">
+                        <i className="bi bi-bag-check me-2"></i> Mis Pedidos y Cuenta
+                      </Link>
+                    </li>
+                  )}
                   <li><hr className="dropdown-divider" /></li>
                   <li><button className="dropdown-item text-danger fw-bold" onClick={handleLogout}>Cerrar Sesión</button></li>
                 </ul>

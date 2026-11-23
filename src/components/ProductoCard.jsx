@@ -5,10 +5,8 @@ import { Link } from 'react-router-dom';
  * Componente Funcional: ProductoCard
  */
 const ProductoCard = ({ producto, onActualizarCarrito }) => {
-  // 1. NUEVO ESTADO: Controla la cantidad a agregar, inicia en 1
   const [cantidad, setCantidad] = useState(1);
 
-  // Funciones para sumar y restar respetando los límites
   const handleSumar = () => {
     if (cantidad < producto.stock) {
       setCantidad(cantidad + 1);
@@ -20,29 +18,26 @@ const ProductoCard = ({ producto, onActualizarCarrito }) => {
       setCantidad(cantidad - 1);
     }
   };
-  
-  /**
-   * Manejador de evento: Agregar producto al carrito en localStorage.
-   */
+
   const agregarAlCarrito = () => {
     let carrito = JSON.parse(localStorage.getItem('react_carrito')) || [];
-    const existe = carrito.find(item => item.id === producto.id);
+    const existe = carrito.find(item => String(item.id) === String(producto.id));
 
     if (existe) {
-      // MODIFICADO: Ahora suma la cantidad seleccionada en lugar de un 1 fijo
-      carrito = carrito.map(item =>
-        item.id === producto.id ? { ...item, cantidad: (item.cantidad || 1) + cantidad } : item
-      );
+      carrito = carrito.map(item => {
+        if (String(item.id) === String(producto.id)) {
+          const nuevaCantidad = Math.min((item.cantidad || 1) + cantidad, producto.stock);
+          return { ...item, stock: producto.stock, cantidad: nuevaCantidad };
+        }
+        return item;
+      });
     } else {
-      // MODIFICADO: Agrega el nuevo producto con la cantidad seleccionada
-      carrito.push({ ...producto, cantidad: cantidad });
+      carrito.push({ ...producto, cantidad });
     }
 
     localStorage.setItem('react_carrito', JSON.stringify(carrito));
-    
+
     if (onActualizarCarrito) onActualizarCarrito();
-    
-    // Opcional: Reiniciar el contador a 1 después de agregar al carrito
     setCantidad(1);
   };
 
@@ -54,15 +49,15 @@ const ProductoCard = ({ producto, onActualizarCarrito }) => {
         alt={producto.nombre}
         style={{ height: '180px', objectFit: 'cover' }}
       />
-      
+
       <div className="card-body d-flex flex-column p-3">
         <span className="badge bg-secondary mb-2 align-self-start">
           {producto.categoria || 'Herramientas'}
         </span>
-        
+
         <h5 className="card-title fw-bold text-dark fs-6 mb-1">{producto.nombre}</h5>
-        <p className="card-text text-muted small mb-2">Cód: {producto.id}</p>
-        
+        <p className="card-text text-muted small mb-2">Cód: {producto.codigo || producto.id}</p>
+
         <div className="mb-2">
           <span className={`badge ${producto.stock > 0 ? 'bg-success' : 'bg-danger'}`}>
             Stock: {producto.stock} unidades
@@ -71,22 +66,21 @@ const ProductoCard = ({ producto, onActualizarCarrito }) => {
 
         <div className="mt-auto pt-2">
           <h4 className="fw-bold text-danger mb-3">
-            ${producto.precio ? producto.precio.toLocaleString() : producto.precio}
+            ${producto.precio ? producto.precio.toLocaleString('es-CL') : 0}
           </h4>
-          
-          {/* NUEVO: SELECTOR DE CANTIDAD */}
+
           {producto.stock > 0 && (
             <div className="d-flex align-items-center justify-content-center mb-3">
-              <button 
-                className="btn btn-sm btn-outline-secondary px-3" 
+              <button
+                className="btn btn-sm btn-outline-secondary px-3"
                 onClick={handleRestar}
                 disabled={cantidad <= 1}
               >
                 -
               </button>
               <span className="mx-3 fw-bold fs-5">{cantidad}</span>
-              <button 
-                className="btn btn-sm btn-outline-secondary px-3" 
+              <button
+                className="btn btn-sm btn-outline-secondary px-3"
                 onClick={handleSumar}
                 disabled={cantidad >= producto.stock}
               >
@@ -94,7 +88,7 @@ const ProductoCard = ({ producto, onActualizarCarrito }) => {
               </button>
             </div>
           )}
-          
+
           <div className="d-grid gap-2">
             <button
               onClick={agregarAlCarrito}
@@ -103,7 +97,7 @@ const ProductoCard = ({ producto, onActualizarCarrito }) => {
             >
               <i className="bi bi-cart-plus me-1"></i> Añadir al Carrito
             </button>
-            
+
             <Link to={`/detalle/${producto.id}`} className="btn btn-outline-secondary btn-sm">
               Ver Detalle
             </Link>
