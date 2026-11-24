@@ -1,25 +1,16 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { createUsuario, getUsuarios } from '../data/database';
 import UsuarioService from '../services/UsuarioService';
+
 /**
  * Componente de Página: Registro
- * 
- * Descripción: Permite a un usuario nuevo crear una cuenta en la aplicación. Realiza validaciones estrictas
- * en tiempo real para el nombre (solo letras), el dominio de correo (@gmail.com o @losmaestros.cl), la existencia previa del correo,
- * la longitud de la clave y la coincidencia de contraseñas.
- * 
- * Criterios Evaluados Aplicados:
- * 1. Validación de Formularios y Expresiones Regulares (Regex): Uso de expresiones regulares para restringir números/caracteres en el nombre y dominios permitidos en el correo.
- * 2. Manejo de Estado Complejo (useState): Mantiene el estado de las entradas (`formData`) y de las alertas de error por campo (`errores`).
- * 3. Feedback Visual de Validation en Bootstrap: Clases dinámicas `is-invalid` y contenedores `invalid-feedback` para mostrar alertas bajo el input con error.
- * 4. Integración con Base de Datos Centralizada (`database.js`): Persistencia del nuevo usuario con `createUsuario` e inicio de sesión automático en LocalStorage.
+ *
+ * Descripción: Crea una nueva cuenta de Cliente en Spring Boot (/api/v1/usuarios/registro)
+ * y realiza login automático para obtener sus tokens JWT y mantener la sesión activa.
  */
 const Registro = () => {
-  // Hook useNavigate para redirigir al usuario al Home tras registrarse
   const navigate = useNavigate();
 
-  // Estado compuesto (objeto) para capturar los valores ingresados en el formulario
   const [formData, setFormData] = useState({
     nombre: '',
     email: '',
@@ -27,31 +18,21 @@ const Registro = () => {
     confirmarPassword: ''
   });
 
-  // Estado compuesto (objeto) para almacenar los mensajes de error por cada input
   const [errores, setErrores] = useState({});
+  const [registrando, setRegistrando] = useState(false);
 
-  /**
-   * Manejador de Cambios Unificado (handleChange):
-   * Actualiza el valor del input en `formData` y limpia el mensaje de error del campo que el usuario está corrigiendo.
-   */
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
 
-    // Si había un error previo en este campo, lo borra al volver a escribir
     if (errores[name]) {
       setErrores({ ...errores, [name]: '' });
     }
   };
 
-  /**
-   * Función de Validación Completa (validarFormulario):
-   * Evalúa cada regla de negocio y llena el objeto `nuevosErrores`. Retorna true si no existen errores.
-   */
   const validarFormulario = () => {
     const nuevosErrores = {};
 
-    // 1. Validar Nombre (No vacío y sin números/caracteres especiales mediante Regex)
     const regexSoloLetras = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/;
     if (!formData.nombre.trim()) {
       nuevosErrores.nombre = 'El nombre completo es obligatorio.';
@@ -59,81 +40,67 @@ const Registro = () => {
       nuevosErrores.nombre = 'El nombre no puede contener números ni caracteres especiales.';
     }
 
-    // 2. Validar Correo (@gmail.com o @losmaestros.cl) y unicidad en la base de datos
     const regexEmailDominio = /^[a-zA-Z0-9._%+-]+@(gmail\.com|losmaestros\.cl)$/i;
     if (!formData.email.trim()) {
       nuevosErrores.email = 'El correo electrónico es obligatorio.';
     } else if (!regexEmailDominio.test(formData.email.trim())) {
       nuevosErrores.email = 'El correo debe terminar en @gmail.com o @losmaestros.cl.';
-    } else {
-      // Validar si el correo ya existe registrado utilizando getUsuarios() de database.js
-      const usuariosExistentes = getUsuarios();
-      const existe = usuariosExistentes.some(
-        u => u.email.toLowerCase() === formData.email.trim().toLowerCase()
-      );
-      if (existe) {
-        nuevosErrores.email = 'Este correo ya se encuentra registrado en el sistema.';
-      }
     }
 
-    // 3. Validar Contraseña (Mínimo 3 caracteres)
     if (!formData.password) {
       nuevosErrores.password = 'La contraseña es obligatoria.';
     } else if (formData.password.length < 3) {
       nuevosErrores.password = 'La contraseña debe tener al menos 3 caracteres.';
     }
 
-    // 4. Validar Confirmación de Contraseña (Coincidencia con la primera clave)
     if (formData.password !== formData.confirmarPassword) {
       nuevosErrores.confirmarPassword = 'Las contraseñas no coinciden.';
     }
 
-    // Guarda los errores encontrados y devuelve true si no hubo fallos
     setErrores(nuevosErrores);
     return Object.keys(nuevosErrores).length === 0;
   };
 
-  /**
-   * Manejador del Envío (handleSubmit):
-   * Intercepta el evento Submit, ejecuta `validarFormulario()`. Si todo es correcto, registra al usuario con rol 'Cliente',
-   * guarda la sesión activa en 'localStorage' y redirige a la raíz `/`.
-   */
   const handleSubmit = async (e) => {
-  e.preventDefault(); // Detiene el comportamiento de envío tradicional
+    e.preventDefault();
 
-  // Detiene el proceso si las validaciones no se cumplen
-  if (!validarFormulario()) {
-    return;
-  }
+    if (!validarFormulario()) {
+      return;
+    }
 
-  try {
-    // Registrar nuevo usuario con rol 'Cliente' en Spring Boot (H2)
-    const { data: nuevoUsuario } = await UsuarioService.registrar({
-      nombre: formData.nombre.trim(),
-      email: formData.email.trim().toLowerCase(),
-      password: formData.password,
-      rol: 'Cliente',
-      activo: true
-  });
+    const emailNormalizado = formData.email.trim().toLowerCase();
 
+    try {
+      setRegistrando(true);
 
-    // Iniciar sesión automáticamente tras el registro guardando el objeto en localStorage
-    localStorage.setItem('react_usuario_activo', JSON.stringify(nuevoUsuario));
+      // 1. Registrar usuario en Spring Boot (H2)
+      await UsuarioService.registrar({
+        nombre: formData.nombre.trim(),
+        email: emailNormalizado,
+        password: formData.password,
+        rol: 'Cliente',
+        activo: true
+      });
 
-    navigate('/');
-    window.location.reload(); // Para refrescar la sesión en la barra de navegación
-  
+      // 2. Iniciar sesión automáticamente para obtener y guardar los tokens JWT
+      const { data } = await UsuarioService.login(emailNormalizado, formData.password);
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('refreshToken', data.refreshToken);
+      localStorage.setItem('react_usuario_activo', JSON.stringify(data.usuario));
+
+      navigate('/');
+      window.location.reload();
     } catch (err) {
-    const mensaje = err.response?.data?.mensaje || 'Error al registrar el usuario en el servidor.';
-    alert(mensaje); // O usa tu estado de error si tienes uno (ej. setErrores)
-  }
-};
+      const mensaje = err.response?.data?.mensaje || 'Error al registrar el usuario en el servidor.';
+      setErrores((prev) => ({ ...prev, email: mensaje }));
+    } finally {
+      setRegistrando(false);
+    }
+  };
 
   return (
-    /* Layout centrado con cuadrícula de Bootstrap */
     <div className="row justify-content-center py-4">
       <div className="col-md-6 col-lg-5">
-        {/* Tarjeta contenedora sin bordes y con sombra suave */}
         <div className="card shadow-sm border-0">
           <div className="card-header bg-dark text-white text-center p-3">
             <h4 className="mb-0 fw-bold">
@@ -141,10 +108,7 @@ const Registro = () => {
             </h4>
           </div>
           <div className="card-body p-4">
-            {/* Formulario deshabilitando validaciones nativas HTML con noValidate */}
             <form onSubmit={handleSubmit} noValidate>
-              
-              {/* Campo Nombre Completo */}
               <div className="mb-3">
                 <label className="form-label fw-bold small text-muted">Nombre Completo</label>
                 <input
@@ -155,11 +119,9 @@ const Registro = () => {
                   onChange={handleChange}
                   placeholder="Ej. Juan Pérez"
                 />
-                {/* Mensaje de error dinámico de Bootstrap */}
                 {errores.nombre && <div className="invalid-feedback">{errores.nombre}</div>}
               </div>
 
-              {/* Campo Correo Electrónico */}
               <div className="mb-3">
                 <label className="form-label fw-bold small text-muted">Correo Electrónico</label>
                 <input
@@ -173,7 +135,6 @@ const Registro = () => {
                 {errores.email && <div className="invalid-feedback">{errores.email}</div>}
               </div>
 
-              {/* Campo Contraseña */}
               <div className="mb-3">
                 <label className="form-label fw-bold small text-muted">Contraseña</label>
                 <input
@@ -187,7 +148,6 @@ const Registro = () => {
                 {errores.password && <div className="invalid-feedback">{errores.password}</div>}
               </div>
 
-              {/* Campo Confirmar Contraseña */}
               <div className="mb-4">
                 <label className="form-label fw-bold small text-muted">Confirmar Contraseña</label>
                 <input
@@ -201,12 +161,14 @@ const Registro = () => {
                 {errores.confirmarPassword && <div className="invalid-feedback">{errores.confirmarPassword}</div>}
               </div>
 
-              {/* Botón de Envio */}
-              <button type="submit" className="btn btn-warning w-100 fw-bold py-2 shadow-sm mb-3">
-                Registrarse e Iniciar Sesión
+              <button
+                type="submit"
+                className="btn btn-warning w-100 fw-bold py-2 shadow-sm mb-3"
+                disabled={registrando}
+              >
+                {registrando ? 'Creando cuenta...' : 'Registrarse e Iniciar Sesión'}
               </button>
 
-              {/* Enlace para usuarios ya registrados */}
               <div className="text-center">
                 <small className="text-muted">
                   ¿Ya tienes una cuenta? <Link to="/login" className="fw-bold text-decoration-none">Inicia sesión aquí</Link>

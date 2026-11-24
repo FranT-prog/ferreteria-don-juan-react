@@ -5,11 +5,9 @@ import UsuarioService from '../services/UsuarioService';
 /**
  * Componente de Página: Login
  *
- * Descripción: Permite la autenticación de usuarios contra el backend Spring Boot
- * mediante la API REST (/api/v1/usuarios/login). Persiste la sesión activa en
- * localStorage y redirige según el rol ('Administrador', 'Vendedor' o 'Cliente').
- *
- * @param {Function} onLoginSuccess - Callback para actualizar el estado global del usuario en App/Navbar.
+ * Descripción: Autentica usuarios contra Spring Boot (/api/v1/usuarios/login),
+ * almacena los tokens JWT (Access + Refresh) y el usuario activo en localStorage,
+ * y redirige según el rol ('Administrador', 'Vendedor' o 'Cliente').
  */
 const Login = ({ onLoginSuccess }) => {
   const navigate = useNavigate();
@@ -28,22 +26,25 @@ const Login = ({ onLoginSuccess }) => {
     setCargando(true);
 
     try {
-      const { data: usuarioEncontrado } = await UsuarioService.login(
+      const { data } = await UsuarioService.login(
         credenciales.email.trim().toLowerCase(),
         credenciales.password
       );
 
-      // Validación de cuenta desactivada o bloqueada
+      const usuarioEncontrado = data.usuario;
+
       if (usuarioEncontrado.activo === false || usuarioEncontrado.estado === 'Bloqueado') {
         setError('Tu cuenta se encuentra bloqueada o desactivada. Contacta al administrador.');
         return;
       }
 
-      // Persiste la sesión activa en LocalStorage y notifica a App/Navbar
+      // Persiste tokens JWT y sesión activa en LocalStorage
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('refreshToken', data.refreshToken);
       localStorage.setItem('react_usuario_activo', JSON.stringify(usuarioEncontrado));
+
       if (onLoginSuccess) onLoginSuccess(usuarioEncontrado);
 
-      // Redirección condicional según el rol del usuario
       const rol = usuarioEncontrado.rol?.toLowerCase();
       if (rol === 'administrador' || rol === 'admin') {
         navigate('/admin');

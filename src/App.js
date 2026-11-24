@@ -32,11 +32,12 @@ import DetallePedido from './pages/DetallePedido';
 function App() {
   const [contadorCarrito, setContadorCarrito] = useState(0);
 
-  // Carga síncrona desde LocalStorage para mantener la sesión al recargar (F5)
+  // Carga síncrona validando que exista token JWT y usuario guardado para persistir sesión al recargar (F5)
   const [usuarioActivo, setUsuarioActivo] = useState(() => {
     try {
+      const token = localStorage.getItem('token');
       const usuarioGuardado = localStorage.getItem('react_usuario_activo');
-      return usuarioGuardado ? JSON.parse(usuarioGuardado) : null;
+      return token && usuarioGuardado ? JSON.parse(usuarioGuardado) : null;
     } catch {
       return null;
     }
@@ -53,6 +54,8 @@ function App() {
   };
 
   const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
     localStorage.removeItem('react_usuario_activo');
     setUsuarioActivo(null);
   };
